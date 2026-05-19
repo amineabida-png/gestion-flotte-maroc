@@ -2391,7 +2391,7 @@ function gpsConfigForm() {
     </div>
     <div class="form-field" style="margin-bottom:14px"><label>URL Traccar *</label><input id="tc_url" value="${url}" placeholder="https://traccar.up.railway.app"></div>
     <div class="form-grid">
-      <div class="form-field"><label>Email</label><input id="tc_user" value="${user}" placeholder="admin@gfm.ma"></div>
+      <div class="form-field"><label>Email (respectez MAJ/min)</label><input id="tc_user" value="${user}" placeholder="Identique à Traccar"></div>
       <div class="form-field"><label>Mot de passe</label><input type="password" id="tc_pass" value="${pass}" placeholder="••••••••"></div>
     </div>
     <div style="padding:12px;background:#0a1520;border-radius:10px;margin-top:12px">
@@ -2441,7 +2441,7 @@ async function fetchGPS() {
 
 async function connectTraccar() {
   const url = document.getElementById('tc_url').value.trim();
-  const user = document.getElementById('tc_user').value.trim();
+  const user = document.getElementById('tc_user').value.trim(); // Ne pas modifier la casse - Traccar est sensible
   const pass = document.getElementById('tc_pass').value;
   if(!url){toast('URL obligatoire','error');return;}
   const aid = currentAccount?.id || 'default';
