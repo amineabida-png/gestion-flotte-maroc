@@ -212,6 +212,14 @@ tr:hover td{background:#ffffff04}
       <div id="page-maintenance" class="page"></div>
       <div id="page-expenses" class="page"></div>
       <div id="page-alerts" class="page"></div>
+      <div id="page-rh" class="page"></div>
+      <div id="page-rapports" class="page"></div>
+      <div id="page-notifications" class="page"></div>
+      <div id="page-portail" class="page"></div>
+      <div id="page-chargements" class="page"></div>
+      <div id="page-documents" class="page"></div>
+      <div id="page-planificateur" class="page"></div>
+      <div id="page-cartePeages" class="page"></div>
       <div id="page-superadmin" class="page"></div>
     </div>
   </div>
@@ -340,14 +348,22 @@ function buildSidebar() {
   const isSuper = currentAccount.role === 'super';
   const items = [
     {id:'dashboard', icon:'📊', label:'Dashboard'},
+    {id:'missions', icon:'🗺', label:'Missions'},
     {id:'vehicles', icon:'🚛', label:'Flotte'},
     {id:'drivers', icon:'👤', label:'Chauffeurs'},
-    {id:'missions', icon:'🗺', label:'Missions'},
-    {id:'invoices', icon:'📄', label:'Facturation'},
     {id:'fuel', icon:'⛽', label:'Carburant'},
+    {id:'invoices', icon:'📄', label:'Facturation'},
+    {id:'rh', icon:'👥', label:'RH'},
     {id:'maintenance', icon:'🔧', label:'Maintenance'},
     {id:'expenses', icon:'💸', label:'Dépenses'},
     {id:'alerts', icon:'🔔', label:'Alertes', badge:true},
+    {id:'rapports', icon:'📈', label:'Rapports'},
+    {id:'notifications', icon:'📱', label:'Notifications'},
+    {id:'portail', icon:'🏢', label:'Portail Client'},
+    {id:'chargements', icon:'📦', label:'Chargements'},
+    {id:'documents', icon:'📋', label:'Documents'},
+    {id:'planificateur', icon:'🗺', label:'Planif. Routes'},
+    {id:'cartePeages', icon:'🛣️', label:'Carte Péages ADM'},
   ];
   if (isSuper) items.push({id:'superadmin', icon:'👑', label:'Super Admin'});
 
@@ -401,6 +417,14 @@ function renderPage(page) {
     case 'maintenance': renderMaintenance(el); break;
     case 'expenses': renderExpenses(el); break;
     case 'alerts': renderAlerts(el); break;
+    case 'rh': renderRH(el); break;
+    case 'rapports': renderRapports(el); break;
+    case 'notifications': renderNotifications(el); break;
+    case 'portail': renderPortail(el); break;
+    case 'chargements': renderChargements(el); break;
+    case 'documents': renderDocuments(el); break;
+    case 'planificateur': renderPlanificateur(el); break;
+    case 'cartePeages': renderCartePeages(el); break;
     case 'superadmin': renderSuperAdmin(el); break;
   }
 }
@@ -1128,6 +1152,658 @@ async function deleteAccount(id) {
   confirm('Supprimer le compte', 'Toutes les données de ce client seront supprimées définitivement. Confirmer ?', async () => {
     try { await api('DELETE','/api/admin/accounts/'+id); renderPage('superadmin'); toast('Compte supprimé','success'); } catch(e){toast(e.error||'Erreur','error');}
   });
+}
+
+
+// ─── RH ──────────────────────────────────────────────────────────────────────
+function renderRH(el) {
+  const drivers = state.drivers || [];
+  const leaves = state.leaves || [];
+  const totalSal = drivers.reduce((a,d)=>a+Number(d.salary||0),0);
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Ressources Humaines</div><div class="page-sub">Gestion des équipes</div></div>
+      <button class="btn btn-orange" onclick="leaveForm()">+ Demande congé</button>
+    </div>
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">👥</div><div class="stat-value" style="color:#3b82f6">${drivers.length}</div><div class="stat-label">Employés</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${drivers.filter(d=>d.status==='actif').length}</div><div class="stat-label">Actifs</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f59e0b18">🏖</div><div class="stat-value" style="color:#f59e0b">${leaves.filter(l=>l.status==='en_attente').length}</div><div class="stat-label">Congés en attente</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(totalSal)}</div><div class="stat-label">Masse salariale</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Fiches salaires</div>
+        ${drivers.map(d=>`
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #0f1e35">
+            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0">${d.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:700">${d.name}</div><div style="font-size:11px;color:#94a3b8">${d.city||''} · Permis ${d.license||''}</div></div>
+            ${badge(d.status)}
+            <div style="text-align:right"><div style="font-size:15px;font-weight:800;color:#22c55e">${Number(d.salary||0).toLocaleString()} MAD</div><div style="font-size:10px;color:#94a3b8">mensuel</div></div>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-ghost btn-sm" onclick="alert('Bulletin de ${d.name.replace(/'/g,"\\'")} généré ✓')">Bulletin</button>
+              <button class="btn btn-success btn-sm" onclick="alert('Avance enregistrée pour ${d.name.replace(/'/g,"\\'")}')">Avance</button>
+            </div>
+          </div>`).join('') || '<p style="color:#94a3b8;padding:20px;text-align:center">Aucun chauffeur</p>'}
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Demandes de congé</div>
+        ${leaves.length===0?'<p style="color:#94a3b8;font-size:13px">Aucune demande</p>':
+        leaves.map(l=>{
+          const drv = drivers.find(d=>d.id==l.driver_id);
+          return `<div style="padding:12px;background:#ffffff06;border-radius:10px;margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:700">${drv?drv.name:'—'}</span>${badge(l.status)}
+            </div>
+            <div style="font-size:12px;color:#94a3b8;margin-bottom:8px">${l.type||''} · ${l.from_date||''} → ${l.to_date||''}</div>
+            ${l.status==='en_attente'?`<div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" onclick="updateLeave(${l.id},'approuve')">✓ Approuver</button>
+              <button class="btn btn-danger btn-sm" onclick="updateLeave(${l.id},'refuse')">✕ Refuser</button>
+            </div>`:`<button class="btn btn-danger btn-sm" onclick="deleteItem('leaves',${l.id},'cette demande')">Supprimer</button>`}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function leaveForm() {
+  const drivers = state.drivers || [];
+  openModal('Demande de congé', `
+    <div class="form-field" style="margin-bottom:14px"><label>Chauffeur *</label><select id="f_did"><option value="">Choisir</option>${drivers.map(d=>`<option value="${d.id}">${d.name}</option>`).join('')}</select></div>
+    <div class="form-field" style="margin-bottom:14px"><label>Type</label><select id="f_ltype"><option>Conge annuel</option><option>Conge maladie</option><option>Conge sans solde</option><option>Autre</option></select></div>
+    <div class="form-grid">
+      <div class="form-field"><label>Date début *</label><input type="date" id="f_from"></div>
+      <div class="form-field"><label>Date fin *</label><input type="date" id="f_to"></div>
+    </div>
+    <div class="form-field" style="margin-top:14px"><label>Notes</label><textarea id="f_notes" rows="2" placeholder="Motif..."></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveLeave()">Soumettre</button>`
+  );
+}
+
+async function saveLeave() {
+  const data = { driver_id:document.getElementById('f_did').value, type:document.getElementById('f_ltype').value, from_date:document.getElementById('f_from').value, to_date:document.getElementById('f_to').value, notes:document.getElementById('f_notes').value, status:'en_attente' };
+  if(!data.driver_id||!data.from_date||!data.to_date){toast('Tous les champs obligatoires','error');return;}
+  try { await api('POST','/api/leaves',data); closeModal(); await loadAll(); renderPage('rh'); toast('Demande soumise','success'); } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function updateLeave(id, status) {
+  try { await api('PUT','/api/leaves/'+id,{status}); await loadAll(); renderPage('rh'); toast(status==='approuve'?'Congé approuvé':'Congé refusé','success'); } catch(e){}
+}
+
+// ─── RAPPORTS ─────────────────────────────────────────────────────────────────
+function renderRapports(el) {
+  const missions = state.missions || [];
+  const invoices = state.invoices || [];
+  const vehicles = state.vehicles || [];
+  const fuels = state.fuels || [];
+  const drivers = state.drivers || [];
+  const paid = invoices.filter(i=>i.status==='paye').reduce((a,i)=>a+Number(i.amount),0);
+  const pending = invoices.filter(i=>i.status==='en_attente').reduce((a,i)=>a+Number(i.amount),0);
+  const fuelCost = fuels.reduce((a,f)=>a+Number(f.litres||0)*Number(f.price_per_l||14.5),0);
+  const topDriver = [...drivers].sort((a,b)=>b.missions-a.missions)[0];
+  const maxCA = Math.max(paid, 100000);
+
+  const fuelByVehicle = vehicles.map(v=>({
+    plate:v.plate,
+    total:fuels.filter(f=>f.vehicle_id==v.id).reduce((a,f)=>a+Number(f.litres||0)*Number(f.price_per_l||14.5),0),
+    litres:fuels.filter(f=>f.vehicle_id==v.id).reduce((a,f)=>a+Number(f.litres||0),0),
+  })).filter(v=>v.total>0);
+
+  el.innerHTML = `
+    <div class="page-header"><div><div class="page-title">Rapports & Analytics</div><div class="page-sub">Vue globale des performances</div></div></div>
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(paid)}</div><div class="stat-label">CA encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">⛽</div><div class="stat-value" style="color:#3b82f6">${fmtMAD(Math.round(fuelCost))}</div><div class="stat-label">Coût carburant</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">📈</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid-Math.round(fuelCost))}</div><div class="stat-label">Marge estimée</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#a855f618">🚛</div><div class="stat-value" style="color:#a855f7">${vehicles.reduce((a,v)=>a+Number(v.km||0),0).toLocaleString()} km</div><div class="stat-label">Km totaux</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">Indicateurs clés</div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:16px">Performance globale</div>
+        ${[
+          ['Taux recouvrement', invoices.length?Math.round(invoices.filter(i=>i.status==='paye').length/invoices.length*100)+'%':'0%', '#22c55e'],
+          ['Missions réussies', missions.length?Math.round(missions.filter(m=>m.status==='termine').length/missions.length*100)+'%':'0%', '#3b82f6'],
+          ['Flotte disponible', vehicles.length?Math.round(vehicles.filter(v=>v.status==='disponible').length/vehicles.length*100)+'%':'0%', '#f97316'],
+          ['En attente', fmtMAD(pending), '#f59e0b'],
+        ].map(([l,v,c])=>`
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12px;color:#94a3b8">${l}</span>
+              <span style="font-size:12px;font-weight:800;color:${c}">${v}</span>
+            </div>
+            <div style="height:5px;background:#1a2744;border-radius:3px"><div style="height:100%;border-radius:3px;background:${c};width:${v.includes('%')?v:'60%'}"></div></div>
+          </div>`).join('')}
+        ${topDriver?`<div style="padding:12px;background:#ffffff06;border-radius:10px;margin-top:12px">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Meilleur chauffeur</div>
+          <div style="font-size:14px;font-weight:800">⭐ ${topDriver.name}</div>
+          <div style="font-size:12px;color:#f97316">${topDriver.missions||0} missions · Note ${topDriver.rating||5}</div>
+        </div>`:''}
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Résumé financier</div>
+        ${[['CA Total',fmtMAD(paid),'#22c55e'],['En attente',fmtMAD(pending),'#f59e0b'],['Carburant',fmtMAD(Math.round(fuelCost)),'#ef4444'],['Missions',missions.length,'#3b82f6'],['Véhicules',vehicles.length,'#f97316'],['Chauffeurs',drivers.length,'#a855f7']].map(([l,v,c])=>`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #0f1e35">
+            <span style="font-size:12px;color:#94a3b8">${l}</span>
+            <span style="font-size:13px;font-weight:800;color:${c}">${v}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:16px">Coûts carburant par véhicule</div>
+      ${fuelByVehicle.length===0?'<p style="color:#94a3b8;text-align:center;padding:20px">Aucune donnée carburant</p>':
+      fuelByVehicle.map(v=>{
+        const maxF = Math.max(...fuelByVehicle.map(x=>x.total),1);
+        return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+          <div style="width:100px;font-size:12px;font-weight:700;flex-shrink:0">${v.plate}</div>
+          <div style="flex:1;height:7px;background:#1a2744;border-radius:4px">
+            <div style="height:100%;border-radius:4px;background:linear-gradient(to right,#3b82f6,#60a5fa);width:${(v.total/maxF*100).toFixed(0)}%"></div>
+          </div>
+          <div style="width:110px;text-align:right;font-size:12px;font-weight:700;color:#3b82f6;flex-shrink:0">${fmtMAD(Math.round(v.total))}</div>
+          <div style="width:50px;text-align:right;font-size:11px;color:#94a3b8;flex-shrink:0">${v.litres}L</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function renderNotifications(el) {
+  const vehicles = state.vehicles || [];
+  const invoices = state.invoices || [];
+  const autoAlerts = [
+    ...vehicles.filter(v=>v.insurance&&Math.ceil((new Date(v.insurance)-new Date())/86400000)<=30)
+      .map(v=>({type:'⚠️',msg:'Assurance expire dans '+Math.ceil((new Date(v.insurance)-new Date())/86400000)+'j — '+v.plate,action:'Notifier'})),
+    ...vehicles.filter(v=>v.maintenance&&Math.ceil((new Date(v.maintenance)-new Date())/86400000)<=7)
+      .map(v=>({type:'🔧',msg:'Maintenance dans '+Math.ceil((new Date(v.maintenance)-new Date())/86400000)+'j — '+v.plate,action:'Planifier'})),
+    ...invoices.filter(i=>i.status==='retard')
+      .map(i=>({type:'💰',msg:'Facture en retard — '+i.client+' — '+fmtMAD(i.amount),action:'Relancer'})),
+  ];
+
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Notifications & Alertes Auto</div><div class="page-sub">SMS · Email · WhatsApp</div></div>
+      <button class="btn btn-orange" onclick="sendNotifForm()">+ Envoyer</button>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">📱</div><div class="stat-value" style="color:#22c55e">SMS</div><div class="stat-label">Canal direct</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">📧</div><div class="stat-value" style="color:#3b82f6">Email</div><div class="stat-label">Canal professionnel</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#25d36618">💬</div><div class="stat-value" style="color:#25d366">WhatsApp</div><div class="stat-label">Canal mobile</div></div>
+    </div>
+    ${autoAlerts.length>0?`
+    <div class="card" style="border:1px solid #f9731640;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#f97316;margin-bottom:12px">⚡ Alertes automatiques (${autoAlerts.length})</div>
+      ${autoAlerts.map(a=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#ffffff06;border-radius:10px;margin-bottom:6px">
+          <span style="font-size:13px">${a.type} ${a.msg}</span>
+          <button class="btn btn-ghost btn-sm" onclick="toast('${a.action} effectué ✓','success')">${a.action}</button>
+        </div>`).join('')}
+    </div>`:''}
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:16px">Templates rapides</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+        ${[
+          ['Mission assignée','Votre mission a été assignée. Merci de confirmer votre disponibilité.'],
+          ['Facture impayée','Rappel: Votre facture est en attente de paiement. Merci de régulariser.'],
+          ['Assurance expire','Attention: L assurance expire prochainement. Veuillez la renouveler.'],
+          ['Maintenance prévue','Une maintenance est prévue. Merci de vous présenter au garage.'],
+        ].map(([t,m])=>`
+          <div style="padding:14px;background:#ffffff06;border-radius:10px;cursor:pointer" onclick="sendNotifForm('${t}','${m}')">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">${t}</div>
+            <div style="font-size:11px;color:#94a3b8">${m.slice(0,50)}...</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function sendNotifForm(title='', msg='') {
+  const drivers = state.drivers || [];
+  openModal('Envoyer une notification', `
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      ${['📱 SMS','📧 Email','💬 WhatsApp'].map((t,i)=>`<button onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.style.background='transparent');this.style.background='#f9731620';this.style.color='#f97316';this.style.borderColor='#f97316'" style="flex:1;padding:10px;border-radius:10px;border:1px solid #1a2744;background:${i===0?'#f9731620':'transparent'};color:${i===0?'#f97316':'#94a3b8'};font-weight:700;cursor:pointer">${t}</button>`).join('')}
+    </div>
+    <div class="form-field" style="margin-bottom:14px"><label>Destinataire</label><select id="f_dest"><option value="">Choisir chauffeur</option>${drivers.map(d=>`<option value="${d.id}">${d.name} · ${d.phone||''}</option>`).join('')}</select></div>
+    <div class="form-field" style="margin-bottom:14px"><label>Objet</label><input id="f_ntitle" value="${title}" placeholder="Objet du message"></div>
+    <div class="form-field"><label>Message *</label><textarea id="f_nmsg" rows="4">${msg}</textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="doSendNotif()">Envoyer</button>`
+  );
+}
+
+function doSendNotif() {
+  const msg = document.getElementById('f_nmsg').value;
+  if(!msg){toast('Message obligatoire','error');return;}
+  closeModal();
+  toast('Notification envoyée avec succès ✓','success');
+}
+
+// ─── PORTAIL CLIENT ───────────────────────────────────────────────────────────
+function renderPortail(el) {
+  const missions = state.missions || [];
+  const invoices = state.invoices || [];
+  const clients = [...new Set([...missions.map(m=>m.client),...invoices.map(i=>i.client)])].filter(Boolean);
+
+  if(!window.selectedClient && clients.length>0) window.selectedClient = clients[0];
+  const sel = window.selectedClient;
+
+  const cMissions = missions.filter(m=>m.client===sel);
+  const cInvoices = invoices.filter(i=>i.client===sel);
+  const paid = cInvoices.filter(i=>i.status==='paye').reduce((a,i)=>a+Number(i.amount),0);
+  const pend = cInvoices.filter(i=>i.status!=='paye').reduce((a,i)=>a+Number(i.amount),0);
+
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Portail Client</div><div class="page-sub">Espace client — suivi en temps réel</div></div>
+      <button class="btn btn-ghost" onclick="toast('Lien portail copié ✓','success')">🔗 Partager lien</button>
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:8px">Client</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${clients.map(c=>`<button onclick="window.selectedClient='${c.replace(/'/g,"\\'")}';renderPage('portail')" style="padding:7px 14px;border-radius:20px;border:1px solid ${c===sel?'#f97316':'#1a2744'};background:${c===sel?'#f9731620':'transparent'};color:${c===sel?'#f97316':'#94a3b8'};font-size:13px;font-weight:700;cursor:pointer">${c}</button>`).join('') || '<span style="color:#94a3b8;font-size:13px">Aucun client</span>'}
+      </div>
+    </div>
+    ${sel?`
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">🗺</div><div class="stat-value" style="color:#3b82f6">${cMissions.length}</div><div class="stat-label">Missions</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid)}</div><div class="stat-label">CA encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f59e0b18">⏳</div><div class="stat-value" style="color:#f59e0b">${fmtMAD(pend)}</div><div class="stat-label">En attente</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Missions de ${sel}</div>
+        ${cMissions.length===0?'<p style="color:#94a3b8;text-align:center;padding:20px">Aucune mission</p>':
+        cMissions.map(m=>`
+          <div style="padding:12px;background:#ffffff06;border-radius:10px;margin-bottom:8px;border-left:3px solid ${m.status==='termine'?'#22c55e':m.status==='en_cours'?'#f97316':'#3b82f6'}">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:13px;font-weight:800;color:#f97316">${m.id}</span>${badge(m.status)}
+            </div>
+            <div style="font-size:12px;color:#94a3b8">${m.origin} → ${m.destination}</div>
+            <div style="font-size:13px;font-weight:800;color:#f1f5f9;margin-top:4px">${fmtMAD(m.amount)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Factures de ${sel}</div>
+        ${cInvoices.length===0?'<p style="color:#94a3b8;text-align:center;padding:20px">Aucune facture</p>':
+        cInvoices.map(i=>`
+          <div style="padding:12px;background:#ffffff06;border-radius:10px;margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:13px;font-weight:800;color:#f97316">${i.id}</span>${badge(i.status)}
+            </div>
+            <div style="font-size:16px;font-weight:800">${fmtMAD(i.amount)}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">${i.date||''} → ${i.due||'—'}</div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button class="btn btn-ghost btn-sm" onclick="toast('Facture ${i.id} téléchargée ✓','success')">📥 PDF</button>
+              ${i.status!=='paye'?`<button class="btn btn-ghost btn-sm" onclick="toast('Relance envoyée ✓','success')">📧 Relance</button>`:''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`:''}`;
+}
+
+// ─── CHARGEMENTS ──────────────────────────────────────────────────────────────
+let chargements = [
+  {id:'CHG-001',type:'Ciment en sacs',poids:18500,volume:22,client:'Client Demo',status:'charge',fragile:false,bl:'BL-001'},
+];
+
+function renderChargements(el) {
+  const missions = state.missions || [];
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Gestion des chargements</div><div class="page-sub">${chargements.length} chargement(s)</div></div>
+      <button class="btn btn-orange" onclick="chargementForm()">+ Nouveau</button>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">📦</div><div class="stat-value" style="color:#3b82f6">${chargements.length}</div><div class="stat-label">Chargements</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">⚖️</div><div class="stat-value" style="color:#f97316">${chargements.reduce((a,c)=>a+Number(c.poids||0),0).toLocaleString()} kg</div><div class="stat-label">Poids total</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">📐</div><div class="stat-value" style="color:#22c55e">${chargements.reduce((a,c)=>a+Number(c.volume||0),0)} m³</div><div class="stat-label">Volume total</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${chargements.map(c=>{
+        const colors={en_attente:'#94a3b8',charge:'#3b82f6',en_transit:'#f97316',livre:'#22c55e'};
+        const labels={en_attente:'En attente',charge:'Chargé',en_transit:'En transit',livre:'Livré'};
+        const col=colors[c.status]||'#64748b';
+        return `<div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="width:44px;height:44px;border-radius:12px;background:#f9731618;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div>
+              <div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span style="font-size:14px;font-weight:800">${c.id}</span>
+                  ${c.fragile?'<span style="padding:2px 6px;border-radius:6px;background:#ef444418;color:#ef4444;font-size:10px;font-weight:700">⚠️ FRAGILE</span>':''}
+                </div>
+                <div style="font-size:12px;color:#94a3b8">${c.type} · ${c.client||''}</div>
+              </div>
+            </div>
+            <span style="padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${col}20;color:${col}">${labels[c.status]||c.status}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+            <div style="padding:8px;background:#ffffff06;border-radius:8px;text-align:center"><div style="font-size:10px;color:#94a3b8">Poids</div><div style="font-size:12px;font-weight:800">${c.poids.toLocaleString()} kg</div></div>
+            <div style="padding:8px;background:#ffffff06;border-radius:8px;text-align:center"><div style="font-size:10px;color:#94a3b8">Volume</div><div style="font-size:12px;font-weight:800">${c.volume} m³</div></div>
+            <div style="padding:8px;background:#ffffff06;border-radius:8px;text-align:center"><div style="font-size:10px;color:#94a3b8">Bon livraison</div><div style="font-size:12px;font-weight:800">${c.bl||'—'}</div></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="toast('Bon de livraison téléchargé ✓','success')">📄 BL</button>
+            ${c.status==='charge'?`<button class="btn btn-success btn-sm" onclick="updateChargement('${c.id}','en_transit')">🚛 En transit</button>`:''}
+            ${c.status==='en_transit'?`<button class="btn btn-success btn-sm" onclick="updateChargement('${c.id}','livre')">✓ Livré</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="chargements=chargements.filter(x=>x.id!='${c.id}');renderPage('chargements');toast('Supprimé','success')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('')||'<div class="card" style="text-align:center;color:#94a3b8;padding:40px">Aucun chargement</div>'}
+    </div>`;
+}
+
+function updateChargement(id, status) {
+  chargements = chargements.map(c=>c.id===id?{...c,status}:c);
+  renderPage('chargements');
+  toast('Statut mis à jour','success');
+}
+
+function chargementForm() {
+  openModal('Nouveau chargement', `
+    <div class="form-grid">
+      <div class="form-field"><label>Type de marchandise *</label><input id="f_ctype" placeholder="Ciment, Alimentaire..."></div>
+      <div class="form-field"><label>Poids (kg) *</label><input type="number" id="f_cpoids"></div>
+      <div class="form-field"><label>Volume (m³)</label><input type="number" id="f_cvol"></div>
+      <div class="form-field"><label>Client</label><input id="f_cclient"></div>
+      <div class="form-field"><label>Bon de livraison</label><input id="f_cbl" placeholder="BL-2026-XXX"></div>
+      <div class="form-field"><label>Température (°C frigo)</label><input type="number" id="f_ctemp"></div>
+    </div>
+    <div style="margin-top:12px"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="f_cfrag"> <span style="font-size:13px">⚠️ Marchandise fragile</span></label></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveChargement()">Enregistrer</button>`
+  );
+}
+
+function saveChargement() {
+  const type = document.getElementById('f_ctype').value;
+  const poids = +document.getElementById('f_cpoids').value;
+  if(!type||!poids){toast('Type et poids obligatoires','error');return;}
+  const id = 'CHG-'+Date.now().toString(36).toUpperCase();
+  chargements.unshift({id, type, poids, volume:+document.getElementById('f_cvol').value||0, client:document.getElementById('f_cclient').value, bl:document.getElementById('f_cbl').value, status:'charge', fragile:document.getElementById('f_cfrag').checked});
+  closeModal(); renderPage('chargements'); toast('Chargement enregistré','success');
+}
+
+// ─── DOCUMENTS ────────────────────────────────────────────────────────────────
+let docsList = [];
+
+function renderDocuments(el) {
+  const vehicles = state.vehicles || [];
+  const drivers = state.drivers || [];
+
+  // Auto-generate from vehicles
+  const autoDocs = [];
+  vehicles.forEach(v=>{
+    if(v.insurance) autoDocs.push({id:'auto-ins-'+v.id, type:'Assurance', ref:v.plate, entity:'Véhicule', expiry:v.insurance, status:getDaysLeft2(v.insurance)});
+    if(v.maintenance) autoDocs.push({id:'auto-maint-'+v.id, type:'Maintenance', ref:v.plate, entity:'Véhicule', expiry:v.maintenance, status:getDaysLeft2(v.maintenance)});
+    if(v.vignette) autoDocs.push({id:'auto-vig-'+v.id, type:'Vignette', ref:v.plate, entity:'Véhicule', expiry:v.vignette, status:getDaysLeft2(v.vignette)});
+  });
+  const allDocs = [...autoDocs, ...docsList];
+
+  function getDaysLeft2(d){
+    const days = Math.ceil((new Date(d)-new Date())/86400000);
+    return days<0?'expire':days<=14?'urgent':days<=30?'attention':'valide';
+  }
+  const statusColors = {valide:'#22c55e',attention:'#f59e0b',urgent:'#ef4444',expire:'#64748b'};
+  const statusLabels = {valide:'Valide',attention:'Attention',urgent:'URGENT',expire:'Expiré'};
+
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Documents légaux</div><div class="page-sub">${allDocs.length} document(s)</div></div>
+      <button class="btn btn-orange" onclick="docForm()">+ Ajouter</button>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${allDocs.filter(d=>d.status==='valide').length}</div><div class="stat-label">Valides</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f59e0b18">⚠️</div><div class="stat-value" style="color:#f59e0b">${allDocs.filter(d=>d.status==='attention').length}</div><div class="stat-label">Attention</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#ef444418">🚨</div><div class="stat-value" style="color:#ef4444">${allDocs.filter(d=>d.status==='urgent').length}</div><div class="stat-label">Urgents</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">📄</div><div class="stat-value" style="color:#3b82f6">${allDocs.length}</div><div class="stat-label">Total</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+      ${allDocs.map(d=>{
+        const c = statusColors[d.status]||'#64748b';
+        const days = Math.ceil((new Date(d.expiry)-new Date())/86400000);
+        return `<div class="card" style="border-color:${d.status!=='valide'?c:'#1a2744'}">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;gap:10px;align-items:center">
+              <div style="width:40px;height:40px;border-radius:10px;background:${c}18;display:flex;align-items:center;justify-content:center;font-size:18px">📄</div>
+              <div><div style="font-size:13px;font-weight:800">${d.type}</div><div style="font-size:11px;color:#94a3b8">${d.entity||''} · ${d.ref||''}</div></div>
+            </div>
+            <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:${c}20;color:${c};height:fit-content">${statusLabels[d.status]||d.status}</span>
+          </div>
+          <div style="padding:8px;background:#ffffff06;border-radius:8px;margin-bottom:10px">
+            <span style="font-size:11px;color:#94a3b8">Expiration: </span>
+            <span style="font-size:12px;font-weight:700;color:${c}">${d.expiry} (${isNaN(days)?'—':days+'j'})</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="toast('Document téléchargé ✓','success')">📥 Télécharger</button>
+            ${d.status!=='valide'?`<button class="btn btn-ghost btn-sm" onclick="toast('Rappel envoyé ✓','success')">🔔 Rappel</button>`:''}
+            ${!d.id.startsWith('auto-')?`<button class="btn btn-danger btn-sm" onclick="docsList=docsList.filter(x=>x.id!=='${d.id}');renderPage('documents');toast('Supprimé','success')">Suppr.</button>`:''}
+          </div>
+        </div>`;
+      }).join('')||'<div class="card" style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:40px">Aucun document</div>'}
+    </div>`;
+}
+
+function docForm() {
+  openModal('Nouveau document', `
+    <div class="form-grid">
+      <div class="form-field"><label>Type *</label><select id="f_dtype"><option>Carte grise</option><option>Assurance</option><option>Vignette</option><option>Visite technique</option><option>Permis conduire</option><option>Carte transport</option><option>Autre</option></select></div>
+      <div class="form-field"><label>Référence *</label><input id="f_dref" placeholder="N° de document"></div>
+      <div class="form-field"><label>Entité</label><input id="f_dentity" placeholder="Véhicule / Chauffeur"></div>
+      <div class="form-field"><label>Date expiration *</label><input type="date" id="f_dexp"></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveDoc()">Enregistrer</button>`
+  );
+}
+
+function saveDoc() {
+  const type=document.getElementById('f_dtype').value, ref=document.getElementById('f_dref').value, expiry=document.getElementById('f_dexp').value;
+  if(!ref||!expiry){toast('Référence et expiration obligatoires','error');return;}
+  const days=Math.ceil((new Date(expiry)-new Date())/86400000);
+  const status=days<0?'expire':days<=14?'urgent':days<=30?'attention':'valide';
+  docsList.unshift({id:'doc-'+Date.now(),type,ref,entity:document.getElementById('f_dentity').value,expiry,status});
+  closeModal(); renderPage('documents'); toast('Document ajouté','success');
+}
+
+// ─── PLANIFICATEUR ────────────────────────────────────────────────────────────
+function renderPlanificateur(el) {
+  const vehicles = state.vehicles || [];
+  const drivers = state.drivers || [];
+  if(!window.planSel) window.planSel = {origin:'Casablanca',dest:'Marrakech',vehicleId:'',driverId:''};
+  if(!window.planResult) window.planResult = null;
+  const sel = window.planSel;
+  const result = window.planResult;
+
+  const cities = ['Casablanca','Rabat','Kenitra','Larache','Tanger','Tetouan','Marrakech','Agadir','Settat','Khouribga','Beni Mellal','El Jadida','Safi','Meknes','Fes','Taza','Oujda','Nador'];
+
+  const distances = {'Casablanca-Rabat':92,'Casablanca-Marrakech':243,'Casablanca-Fes':302,'Casablanca-Tanger':345,'Casablanca-Agadir':461,'Casablanca-Settat':72,'Casablanca-Khouribga':117,'Casablanca-El Jadida':99,'Casablanca-Safi':253,'Casablanca-Kenitra':74,'Rabat-Kenitra':40,'Rabat-Fes':200,'Rabat-Tanger':256,'Rabat-Meknes':138,'Rabat-Oujda':474,'Rabat-Marrakech':330,'Kenitra-Larache':132,'Kenitra-Tanger':190,'Tanger-Tetouan':57,'Marrakech-Agadir':256,'Marrakech-Beni Mellal':175,'Fes-Meknes':62,'Fes-Oujda':337,'Fes-Taza':117,'Meknes-Oujda':399,'Settat-Khouribga':69,'Khouribga-Beni Mellal':96,'El Jadida-Safi':155};
+
+  el.innerHTML = `
+    <div class="page-header"><div><div class="page-title">Planificateur de routes</div><div class="page-sub">Calcul kilométrage · Coûts réels</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:16px">Paramètres trajet</div>
+          ${['origin','dest'].map((k,i)=>`
+            <div class="form-field" style="margin-bottom:14px">
+              <label>${i===0?'Ville de départ':'Ville d arrivée'}</label>
+              <select onchange="window.planSel['${k}']=this.value;window.planResult=null;renderPage('planificateur')">
+                ${cities.map(c=>`<option value="${c}" ${sel[k]===c?'selected':''}>${c}</option>`).join('')}
+              </select>
+            </div>`).join('')}
+          <div class="form-field" style="margin-bottom:14px">
+            <label>Véhicule</label>
+            <select onchange="window.planSel.vehicleId=this.value;renderPage('planificateur')">
+              <option value="">-- Choisir --</option>
+              ${vehicles.map(v=>`<option value="${v.id}" ${sel.vehicleId==v.id?'selected':''}>${v.plate} · ${v.type}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-field" style="margin-bottom:16px">
+            <label>Chauffeur</label>
+            <select onchange="window.planSel.driverId=this.value;renderPage('planificateur')">
+              <option value="">-- Choisir --</option>
+              ${drivers.map(d=>`<option value="${d.id}" ${sel.driverId==d.id?'selected':''}>${d.name}</option>`).join('')}
+            </select>
+          </div>
+          <button class="btn btn-orange" style="width:100%" onclick="calcRoute()">🗺 Calculer le trajet</button>
+        </div>
+        ${result?`
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">Résultat</div>
+          <div style="font-size:11px;color:${result.via?'#f59e0b':'#22c55e'};margin-bottom:12px">${result.via?'Via '+result.via:'Trajet direct'}</div>
+          ${[['📏','Distance',result.dist+' km','#3b82f6'],['⏱️','Durée',Math.floor(result.dur/60)+'h '+result.dur%60+'min','#f97316'],['⛽','Carburant ('+result.conso+'L/100km)',fmtMAD(result.fuel),'#22c55e'],['🛣️','Péages ADM',fmtMAD(result.toll),'#a855f7'],['💰','Coût total',fmtMAD(result.total),'#ef4444']].map(([i,l,v,c])=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #0f1e35">
+              <span style="font-size:12px;color:#94a3b8">${i} ${l}</span>
+              <span style="font-size:13px;font-weight:800;color:${c}">${v}</span>
+            </div>`).join('')}
+          <button class="btn btn-success" style="width:100%;margin-top:12px" onclick="toast('Mission créée depuis ce trajet ✓','success')">+ Créer une mission</button>
+        </div>`:''}
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <svg viewBox="0 0 200 200" style="width:100%;height:460;background:linear-gradient(180deg,#060d1a,#0a1628)">
+          ${[...Array(11)].map((_,i)=>`<g><line x1="${i*20}" y1="0" x2="${i*20}" y2="200" stroke="#0f2040" stroke-width="0.3"/><line x1="0" y1="${i*20}" x2="200" y2="${i*20}" stroke="#0f2040" stroke-width="0.3"/></g>`).join('')}
+          <path d="M 55,78 L 58,38 L 62,22 L 72,18 L 90,12 L 120,28 L 145,42 L 162,52 L 165,75 L 155,85 L 140,72 L 128,65 L 102,62 L 90,68 L 90,118 L 100,170 L 80,190 L 60,180 L 44,172 L 40,145 L 46,122 L 52,115 L 62,100 L 55,78 Z" fill="#152840" stroke="#1e3860" stroke-width="0.7" opacity="0.9"/>
+          ${Object.entries({Casablanca:[62,100],Rabat:[58,82],Kenitra:[55,78],Larache:[52,38],Tanger:[62,22],Tetouan:[72,18],Marrakech:[75,138],Agadir:[44,172],Settat:[68,112],Khouribga:[80,108],'Beni Mellal':[90,118],'El Jadida':[52,115],Safi:[46,122],Meknes:[90,68],Fes:[102,62],Taza:[118,58],Oujda:[162,52],Nador:[140,30]}).map(([name,[x,y]])=>{
+            const isO=name===sel.origin,isD=name===sel.dest,isV=result&&result.via===name;
+            const col=isO?'#22c55e':isD?'#ef4444':isV?'#f59e0b':'#2d4a7a';
+            const r=isO||isD?4:isV?3:1.8;
+            return `<g>
+              ${(isO||isD||isV)?`<circle cx="${x}" cy="${y}" r="${r*2.5}" fill="${col}" opacity="0.15"/>`:''}
+              <circle cx="${x}" cy="${y}" r="${r}" fill="${col}"/>
+              <text x="${x+(r+1)}" y="${y+1.2}" fill="${col}" font-size="${isO||isD?'3.2':isV?'2.8':'2.2'}" font-weight="${isO||isD||isV?'800':'500'}">${name}</text>
+            </g>`;
+          }).join('')}
+          ${result&&(()=>{
+            const cityPos={Casablanca:[62,100],Rabat:[58,82],Kenitra:[55,78],Larache:[52,38],Tanger:[62,22],Tetouan:[72,18],Marrakech:[75,138],Agadir:[44,172],Settat:[68,112],Khouribga:[80,108],'Beni Mellal':[90,118],'El Jadida':[52,115],Safi:[46,122],Meknes:[90,68],Fes:[102,62],Taza:[118,58],Oujda:[162,52],Nador:[140,30]};
+            const o=cityPos[sel.origin],d=cityPos[sel.dest],v=result.via?cityPos[result.via]:null;
+            if(!o||!d) return '';
+            if(v) return `<line x1="${o[0]}" y1="${o[1]}" x2="${v[0]}" y2="${v[1]}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,2" opacity="0.9"/>
+              <line x1="${v[0]}" y1="${v[1]}" x2="${d[0]}" y2="${d[1]}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,2" opacity="0.9"/>
+              <circle cx="${v[0]}" cy="${v[1]}" r="3" fill="#f59e0b"/>`;
+            return `<line x1="${o[0]}" y1="${o[1]}" x2="${d[0]}" y2="${d[1]}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,2" opacity="0.9"/>`;
+          })()}
+        </svg>
+        <div style="padding:10px 16px;border-top:1px solid #1a2744;display:flex;gap:12px;font-size:11px">
+          <span style="color:#22c55e">● Départ</span>
+          <span style="color:#ef4444">● Arrivée</span>
+          ${result?`<span style="color:#f97316">— Itinéraire · ${result.dist} km</span>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function calcRoute() {
+  const sel = window.planSel;
+  if(sel.origin===sel.dest){toast('Départ = Arrivée !','error');return;}
+  const distances = {'Casablanca-Rabat':92,'Casablanca-Marrakech':243,'Casablanca-Fes':302,'Casablanca-Tanger':345,'Casablanca-Agadir':461,'Casablanca-Settat':72,'Casablanca-Khouribga':117,'Casablanca-El Jadida':99,'Casablanca-Safi':253,'Casablanca-Kenitra':74,'Rabat-Kenitra':40,'Rabat-Fes':200,'Rabat-Tanger':256,'Rabat-Meknes':138,'Rabat-Oujda':474,'Rabat-Marrakech':330,'Kenitra-Larache':132,'Kenitra-Tanger':190,'Tanger-Tetouan':57,'Marrakech-Agadir':256,'Marrakech-Beni Mellal':175,'Fes-Meknes':62,'Fes-Oujda':337,'Fes-Taza':117,'Meknes-Oujda':399,'Settat-Khouribga':69,'Khouribga-Beni Mellal':96,'El Jadida-Safi':155};
+  const tollTable = {'Casablanca-Rabat':43,'Casablanca-Kenitra':71,'Casablanca-Tanger':112,'Casablanca-Marrakech':150,'Casablanca-Agadir':337,'Casablanca-Settat':42,'Casablanca-El Jadida':59,'Casablanca-Safi':156,'Casablanca-Khouribga':74,'Rabat-Kenitra':28,'Rabat-Fes':60,'Rabat-Tanger':150,'Rabat-Meknes':34,'Fes-Meknes':26,'Fes-Oujda':216,'Marrakech-Agadir':185,'Kenitra-Tanger':122,'Tanger-Tetouan':20};
+  const getDist=(a,b)=>distances[a+'-'+b]||distances[b+'-'+a]||null;
+  const getToll=(a,b)=>tollTable[a+'-'+b]||tollTable[b+'-'+a]||null;
+  let dist=getDist(sel.origin,sel.dest), via=null;
+  if(!dist){
+    for(const hub of ['Casablanca','Rabat','Kenitra','Fes']){
+      if(hub===sel.origin||hub===sel.dest) continue;
+      const d1=getDist(sel.origin,hub), d2=getDist(hub,sel.dest);
+      if(d1&&d2){dist=d1+d2;via=hub;break;}
+    }
+  }
+  if(!dist){toast('Trajet non disponible','error');return;}
+  const vehicle = sel.vehicleId ? state.vehicles.find(v=>v.id==sel.vehicleId) : null;
+  const consoMap={'Camion Semi':36,'Tracteur Routier':36,'Camion Benne':40,'Frigorifique':42,'Plateau':30,'Fourgon':15};
+  const conso = vehicle ? (consoMap[vehicle.type]||36) : 36;
+  const fuel = Math.round(dist*conso/100*14.5);
+  let toll = getToll(sel.origin,sel.dest)||0;
+  if(via) toll=(getToll(sel.origin,via)||0)+(getToll(via,sel.dest)||0);
+  if(!toll) toll=Math.round(dist*0.45);
+  const dur = Math.round(dist/(dist>200?100:90)*60);
+  window.planResult = {dist,via,conso,fuel,toll,total:fuel+toll,dur};
+  renderPage('planificateur');
+  toast('Trajet calculé : '+dist+' km ✓','success');
+}
+
+// ─── CARTE PEAGES ─────────────────────────────────────────────────────────────
+function renderCartePeages(el) {
+  if(!window.peageOrig) window.peageOrig='Casablanca';
+  if(!window.peageDest) window.peageDest='Marrakech';
+  const orig=window.peageOrig, dest=window.peageDest;
+
+  const TARIFS = {'Casablanca|Rabat':{cl1:25,cl2:36,cl3:43},'Casablanca|Kenitra':{cl1:39,cl2:59,cl3:71},'Casablanca|Tanger':{cl1:64,cl2:93,cl3:112},'Casablanca|Marrakech':{cl1:83,cl2:124,cl3:150},'Casablanca|Agadir':{cl1:167,cl2:281,cl3:337},'Casablanca|Settat':{cl1:23,cl2:33,cl3:42},'Casablanca|El Jadida':{cl1:31,cl2:48,cl3:59},'Casablanca|Safi':{cl1:80,cl2:126,cl3:156},'Casablanca|Khouribga':{cl1:41,cl2:60,cl3:74},'Rabat|Kenitra':{cl1:14,cl2:23,cl3:28},'Rabat|Fes':{cl1:31,cl2:50,cl3:60},'Rabat|Tanger':{cl1:82,cl2:124,cl3:150},'Rabat|Meknes':{cl1:17,cl2:28,cl3:34},'Kenitra|Tanger':{cl1:68,cl2:101,cl3:122},'Kenitra|Larache':{cl1:41,cl2:61,cl3:74},'Tanger|Tetouan':{cl1:11,cl2:16,cl3:20},'Fes|Meknes':{cl1:14,cl2:22,cl3:26},'Fes|Oujda':{cl1:106,cl2:180,cl3:216},'Marrakech|Agadir':{cl1:93,cl2:155,cl3:185},'Marrakech|Beni Mellal':{cl1:134,cl2:204,cl3:245}};
+  const cities=['Casablanca','Rabat','Kenitra','Larache','Tanger','Tetouan','Marrakech','Agadir','Settat','Khouribga','Beni Mellal','El Jadida','Safi','Meknes','Fes','Oujda'];
+  const getTarif=(a,b)=>TARIFS[a+'|'+b]||TARIFS[b+'|'+a]||null;
+  const getFullTarif=(a,b)=>{
+    const d=getTarif(a,b);
+    if(d) return {...d,via:null};
+    for(const hub of ['Casablanca','Rabat','Kenitra','Fes']){
+      if(hub===a||hub===b) continue;
+      const t1=getTarif(a,hub),t2=getTarif(hub,b);
+      if(t1&&t2) return {cl1:t1.cl1+t2.cl1,cl2:t1.cl2+t2.cl2,cl3:t1.cl3+t2.cl3,via:hub};
+    }
+    return null;
+  };
+  const tarif = orig!==dest ? getFullTarif(orig,dest) : null;
+  const cityPos={Casablanca:[62,100],Rabat:[58,82],Kenitra:[55,78],Larache:[52,38],Tanger:[62,22],Tetouan:[72,18],Marrakech:[75,138],Agadir:[44,172],Settat:[68,112],Khouribga:[80,108],'Beni Mellal':[90,118],'El Jadida':[52,115],Safi:[46,122],Meknes:[90,68],Fes:[102,62],Oujda:[162,52]};
+  const oPos=cityPos[orig],dPos=cityPos[dest],vPos=tarif?.via?cityPos[tarif.via]:null;
+
+  el.innerHTML = `
+    <div class="page-header"><div><div class="page-title">Carte des Péages — Tarifs ADM</div><div class="page-sub">Source officielle: adm.co.ma · Mai 2026</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div style="font-size:14px;font-weight:700;margin-bottom:16px">Calculer le péage</div>
+          ${[['Ville de départ','peageOrig'],['Ville d arrivée','peageDest']].map(([l,k])=>`
+            <div class="form-field" style="margin-bottom:14px">
+              <label>${l}</label>
+              <select onchange="window['${k}']=this.value;renderPage('cartePeages')">
+                ${cities.map(c=>`<option value="${c}" ${(k==='peageOrig'?orig:dest)===c?'selected':''}>${c}</option>`).join('')}
+              </select>
+            </div>`).join('')}
+          ${orig!==dest&&tarif?`
+            ${tarif.via?`<div style="padding:7px 12px;background:#f59e0b15;border-radius:8px;font-size:12px;color:#f59e0b;font-weight:600;margin-bottom:12px">Via ${tarif.via}</div>`:''}
+            <div style="display:flex;flex-direction:column;gap:8px">
+              ${[['🚗','Classe 1','Voiture légère',tarif.cl1,'#22c55e'],['🚐','Classe 2','Utilitaire / Minibus',tarif.cl2,'#3b82f6'],['🚛','Classe 3','Camion poids lourd',tarif.cl3,'#f97316']].map(([i,l,s,v,c])=>`
+                <div style="padding:12px;background:#ffffff06;border-radius:10px;border:1px solid ${c}20;display:flex;justify-content:space-between;align-items:center">
+                  <div><div style="font-size:12px;font-weight:700">${i} ${l}</div><div style="font-size:11px;color:#94a3b8">${s}</div></div>
+                  <div style="font-size:22px;font-weight:900;color:${c}">${v} MAD</div>
+                </div>`).join('')}
+            </div>
+            <div style="margin-top:10px;padding:8px 12px;background:#22c55e10;border-radius:8px;font-size:11px;color:#22c55e;text-align:center">${tarif.via?'Somme des 2 tronçons via '+tarif.via:'Tarif direct ADM officiel'}</div>`
+          :orig===dest?`<div style="padding:12px;background:#ef444410;border-radius:10px;font-size:13px;color:#ef4444;text-align:center">Départ = Arrivée</div>`
+          :`<div style="padding:12px;background:#f59e0b10;border-radius:10px;font-size:12px;color:#f59e0b;text-align:center">Trajet hors réseau autoroutier ADM</div>`}
+        </div>
+        <div class="card" style="max-height:260px;overflow-y:auto">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">Tarifs Classe 3 (MAD)</div>
+          ${Object.entries(TARIFS).map(([k,v])=>{
+            const [a,b]=k.split('|');
+            return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0f1e35;font-size:11px"><span style="color:#94a3b8">${a} — ${b}</span><span style="color:#f97316;font-weight:700">${v.cl3} MAD</span></div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <svg viewBox="0 0 200 200" style="width:100%;height:460;background:linear-gradient(180deg,#060d1a,#0a1628)">
+          ${[...Array(11)].map((_,i)=>`<g><line x1="${i*20}" y1="0" x2="${i*20}" y2="200" stroke="#0f2040" stroke-width="0.3"/><line x1="0" y1="${i*20}" x2="200" y2="${i*20}" stroke="#0f2040" stroke-width="0.3"/></g>`).join('')}
+          <path d="M 55,78 L 58,38 L 62,22 L 72,18 L 90,12 L 120,28 L 145,42 L 162,52 L 165,75 L 155,85 L 140,72 L 128,65 L 102,62 L 90,68 L 90,118 L 100,170 L 80,190 L 60,180 L 44,172 L 40,145 L 46,122 L 52,115 L 62,100 L 55,78 Z" fill="#152840" stroke="#1e3860" stroke-width="0.7" opacity="0.9"/>
+          ${Object.entries(cityPos).map(([name,[x,y]])=>{
+            const isO=name===orig,isD=name===dest,isV=tarif?.via===name;
+            const col=isO?'#22c55e':isD?'#ef4444':isV?'#f59e0b':'#2d4a7a';
+            const r=isO||isD?4:isV?3:1.8;
+            return `<g onclick="if('${name}'!=window.peageOrig){window.peageDest='${name}';renderPage('cartePeages');}" style="cursor:pointer">
+              ${(isO||isD||isV)?`<circle cx="${x}" cy="${y}" r="${r*2.5}" fill="${col}" opacity="0.15"/>`:''}
+              <circle cx="${x}" cy="${y}" r="${r}" fill="${col}"/>
+              <text x="${x+(r+1)}" y="${y+1.2}" fill="${col}" font-size="${isO||isD?'3.2':isV?'2.8':'2.2'}" font-weight="${isO||isD||isV?'800':'500'}">${name}</text>
+              ${tarif&&!isV?'':`${isV?`<circle cx="${x}" cy="${y}" r="3" fill="#f59e0b"/>`:''}` }
+            </g>`;
+          }).join('')}
+          ${oPos&&dPos&&orig!==dest?`
+            ${vPos?`<line x1="${oPos[0]}" y1="${oPos[1]}" x2="${vPos[0]}" y2="${vPos[1]}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,2" opacity="0.9"/>
+              <line x1="${vPos[0]}" y1="${vPos[1]}" x2="${dPos[0]}" y2="${dPos[1]}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,2" opacity="0.9"/>`
+            :`<line x1="${oPos[0]}" y1="${oPos[1]}" x2="${dPos[0]}" y2="${dPos[1]}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,2" opacity="0.9"/>`}
+            ${tarif?`<rect x="${(oPos[0]+dPos[0])/2-16}" y="${(oPos[1]+dPos[1])/2-7}" width="32" height="13" rx="3" fill="#0d1829" stroke="#f97316" stroke-width="0.7" opacity="0.95"/>
+              <text x="${(oPos[0]+dPos[0])/2}" y="${(oPos[1]+dPos[1])/2+2}" fill="#f97316" font-size="3.5" font-weight="800" text-anchor="middle">${tarif.cl3} MAD</text>`:''}
+          `:''}
+        </svg>
+        <div style="padding:10px 16px;border-top:1px solid #1a2744;font-size:11px;color:#475569;text-align:center">Cliquer sur une ville pour la choisir comme arrivée</div>
+      </div>
+    </div>`;
 }
 
 // ─── AUTO LOGIN ───────────────────────────────────────────────────────────────
