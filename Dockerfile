@@ -5,16 +5,17 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
 COPY backend/package*.json ./
 RUN npm install --build-from-source
-COPY backend/ ./
-COPY frontend/ ./frontend/
+
+COPY backend/server.js ./
+COPY frontend/public ./public
 
 RUN mkdir -p /app/data && chmod 777 /app/data
 
 ENV PORT=3000
 ENV DATA_DIR=/app/data
-ENV NODE_ENV=production
 
 EXPOSE 3000
 CMD ["node", "server.js"]

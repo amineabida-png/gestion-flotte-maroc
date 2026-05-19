@@ -15,7 +15,7 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── DATABASE SETUP ──────────────────────────────────────────────────────────
 const db = new Database(path.join(DATA_DIR, 'gfm.db'));
@@ -507,7 +507,7 @@ app.get('/api/admin/stats', auth, superOnly, (req, res) => {
 
 // ─── SPA FALLBACK ─────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
