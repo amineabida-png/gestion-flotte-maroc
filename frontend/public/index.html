@@ -168,11 +168,11 @@ tr:hover td{background:#ffffff04}
       <span style="font-size:11px;color:#475569;font-weight:600">OU</span>
       <div style="flex:1;height:1px;background:#1a2744"></div>
     </div>
-    <button onclick="startTrial()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #f9731640;background:#f9731610;color:#f97316;font-weight:700;font-size:14px;cursor:pointer">
-      🚀 Essai gratuit 48h — Sans inscription
+    <button onclick="showTrialForm()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #f9731640;background:#f9731610;color:#f97316;font-weight:700;font-size:14px;cursor:pointer">
+      🚀 Demander un essai gratuit 48h
     </button>
     <div style="text-align:center;margin-top:10px;font-size:11px;color:#475569">
-      ✓ Accès complet · ✓ Sans carte bancaire · ✓ 19 modules
+      ✓ Accès complet · ✓ Sans carte bancaire · ✓ 19 modules · ✓ Validé sous 24h
     </div>
   </div>
 </div>
@@ -249,6 +249,47 @@ tr:hover td{background:#ffffff04}
   </div>
 </div>
 
+<!-- TRIAL FORM MODAL -->
+<div class="modal-overlay" id="trialModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div>
+        <h3 style="font-size:16px;font-weight:800;margin:0">🚀 Demande d'essai gratuit 48h</h3>
+        <p style="color:#94a3b8;font-size:12px;margin:4px 0 0">Remplissez le formulaire — validation sous 24h par notre équipe</p>
+      </div>
+      <button onclick="document.getElementById('trialModal').classList.remove('open')" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label>Prénom *</label><input id="tr_prenom" placeholder="Mohammed"></div>
+        <div class="form-field"><label>Nom *</label><input id="tr_nom" placeholder="Alami"></div>
+        <div class="form-field"><label>Téléphone *</label><input id="tr_phone" placeholder="0661234567" type="tel"></div>
+        <div class="form-field"><label>Email *</label><input id="tr_email" placeholder="contact@societe.ma" type="email"></div>
+        <div class="form-field full-width"><label>Dénomination sociale *</label><input id="tr_societe" placeholder="Transport Alami SARL"></div>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:#f9731610;border-radius:10px;border:1px solid #f9731630">
+        <div style="font-size:12px;color:#f97316;font-weight:700;margin-bottom:4px">📋 Processus de validation</div>
+        <div style="font-size:11px;color:#94a3b8;line-height:1.7">
+          1. Vous soumettez votre demande<br>
+          2. Notre équipe la reçoit et la traite sous 24h<br>
+          3. Vous recevez vos identifiants par email<br>
+          4. Accès complet 48h à tous les modules
+        </div>
+      </div>
+      <div id="trialError" style="color:#ef4444;font-size:13px;margin-top:10px;display:none"></div>
+      <div id="trialSuccess" style="display:none;margin-top:10px;padding:14px;background:#22c55e18;border:1px solid #22c55e40;border-radius:10px;text-align:center">
+        <div style="font-size:20px;margin-bottom:6px">✅</div>
+        <div style="font-size:14px;font-weight:800;color:#22c55e">Demande envoyée avec succès !</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px">Notre équipe vous contactera sous 24h</div>
+      </div>
+    </div>
+    <div class="modal-footer" id="trialFooter">
+      <button class="btn btn-ghost" onclick="document.getElementById('trialModal').classList.remove('open')">Annuler</button>
+      <button class="btn btn-orange" onclick="submitTrialRequest()" id="trialSubmitBtn">Envoyer la demande</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal">
@@ -290,6 +331,67 @@ function toast(msg, type='info') {
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
+function showTrialForm() {
+  // Reset form
+  ['tr_prenom','tr_nom','tr_phone','tr_email','tr_societe'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('trialError').style.display = 'none';
+  document.getElementById('trialSuccess').style.display = 'none';
+  document.getElementById('trialFooter').style.display = 'flex';
+  document.getElementById('trialModal').classList.add('open');
+}
+
+async function submitTrialRequest() {
+  const nom = document.getElementById('tr_nom').value.trim();
+  const prenom = document.getElementById('tr_prenom').value.trim();
+  const phone = document.getElementById('tr_phone').value.trim();
+  const email = document.getElementById('tr_email').value.trim();
+  const societe = document.getElementById('tr_societe').value.trim();
+  const errEl = document.getElementById('trialError');
+  errEl.style.display = 'none';
+
+  if(!nom||!prenom||!phone||!email||!societe) {
+    errEl.textContent = 'Tous les champs sont obligatoires';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(!/^[\w.+-]+@[\w-]+\.[\w.]+$/.test(email)) {
+    errEl.textContent = 'Email invalide';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(phone.length < 9) {
+    errEl.textContent = 'Numéro de téléphone invalide';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('trialSubmitBtn');
+  btn.textContent = 'Envoi en cours...';
+  btn.disabled = true;
+
+  try {
+    await fetch('/api/trial-request', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({nom,prenom,phone,email,societe})
+    }).then(async r => {
+      const data = await r.json();
+      if(!r.ok) throw data;
+      return data;
+    });
+    document.getElementById('trialSuccess').style.display = 'block';
+    document.getElementById('trialFooter').style.display = 'none';
+  } catch(e) {
+    errEl.textContent = e.error || 'Erreur lors de l envoi. Réessayez.';
+    errEl.style.display = 'block';
+    btn.textContent = 'Envoyer la demande';
+    btn.disabled = false;
+  }
+}
+
 function startTrial() {
   // Créer un compte démo local avec expiry 48h
   const expiry = new Date();
@@ -1157,11 +1259,40 @@ async function renderSuperAdmin(el) {
     [accounts, stats] = await Promise.all([api('GET','/api/admin/accounts'), api('GET','/api/admin/stats')]);
   } catch(e){}
 
+  // Fetch trial requests too
+  let trialRequests = [];
+  try { trialRequests = await api('GET','/api/admin/trial-requests'); } catch(e){}
+  const pendingTrials = trialRequests.filter(r=>r.status==='en_attente');
+
   el.innerHTML = `
     <div class="page-header">
       <div><div class="page-title">👑 Super Admin</div><div class="page-sub">Gestion des comptes clients</div></div>
       <button class="btn btn-orange" onclick="createAccountForm()">+ Créer un compte</button>
     </div>
+
+    ${pendingTrials.length>0?`
+    <div class="card" style="border:1px solid #f9731640;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-size:15px;font-weight:800;color:#f97316">📋 Demandes d'essai en attente</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:2px">${pendingTrials.length} demande(s) à traiter</div>
+        </div>
+      </div>
+      ${pendingTrials.map(r=>`
+        <div style="padding:16px;background:#ffffff06;border-radius:12px;margin-bottom:10px;border-left:4px solid #f97316">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+            <div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase">Nom complet</div><div style="font-size:13px;font-weight:800">${r.prenom} ${r.nom}</div></div>
+            <div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase">Société</div><div style="font-size:13px;font-weight:700;color:#f97316">${r.societe}</div></div>
+            <div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase">Téléphone</div><div style="font-size:13px;font-weight:700">${r.phone}</div></div>
+            <div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase">Email</div><div style="font-size:13px;font-weight:700">${r.email}</div></div>
+          </div>
+          <div style="font-size:11px;color:#475569;margin-bottom:10px">Reçue le ${r.created_at?.slice(0,16)||''}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-success btn-sm" onclick="approveTrialForm(${r.id},'${r.prenom} ${r.nom}','${r.email}')">✓ Approuver & Créer compte</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectTrial(${r.id})">✕ Refuser</button>
+          </div>
+        </div>`).join('')}
+    </div>`:''}
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
       <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">👥</div><div class="stat-value" style="color:#3b82f6">${stats.total||0}</div><div class="stat-label">Total clients</div></div>
@@ -1293,6 +1424,55 @@ async function extendAccount(id) {
 async function toggleAccount(id, status) {
   const newStatus = status==='active'?'suspended':'active';
   try { await api('PUT','/api/admin/accounts/'+id,{status:newStatus}); renderPage('superadmin'); toast(newStatus==='active'?'Compte activé':'Compte suspendu','success'); } catch(e){toast(e.error||'Erreur','error');}
+}
+
+function approveTrialForm(id, name, email) {
+  openModal('Approuver la demande de '+name, `
+    <div style="padding:12px;background:#22c55e15;border-radius:10px;margin-bottom:16px;border:1px solid #22c55e30">
+      <div style="font-size:13px;font-weight:700;color:#22c55e;margin-bottom:4px">✓ Création du compte pour : ${name}</div>
+      <div style="font-size:12px;color:#94a3b8">Email: ${email}</div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Plan *</label>
+        <select id="ap_plan">
+          <option value="trial">Essai 48h (gratuit)</option>
+          <option value="month">30 Jours — 499 MAD</option>
+          <option value="year">1 An — 4 990 MAD</option>
+          <option value="life">À Vie — 19 999 MAD</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Mot de passe *</label>
+        <input id="ap_pass" value="GFM2026!" placeholder="Mot de passe initial">
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px;background:#3b82f615;border-radius:8px;font-size:11px;color:#94a3b8">
+      💡 Le mot de passe sera communiqué au client par vos soins
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-success" onclick="approveTrial(${id})">✓ Créer le compte</button>`
+  );
+}
+
+async function approveTrial(id) {
+  const plan = document.getElementById('ap_plan').value;
+  const password = document.getElementById('ap_pass').value;
+  if(!password){toast('Mot de passe obligatoire','error');return;}
+  try {
+    const result = await api('POST','/api/admin/trial-requests/'+id+'/approve',{plan,password});
+    closeModal();
+    renderPage('superadmin');
+    toast('Compte créé ✓ — Email: '+result.email+' / MDP: '+result.password,'success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function rejectTrial(id) {
+  confirm('Refuser la demande','Confirmez-vous le refus de cette demande ?', async () => {
+    try {
+      await api('POST','/api/admin/trial-requests/'+id+'/reject',{});
+      renderPage('superadmin');
+      toast('Demande refusée','success');
+    } catch(e){toast(e.error||'Erreur','error');}
+  });
 }
 
 async function deleteAccount(id) {

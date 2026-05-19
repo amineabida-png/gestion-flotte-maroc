@@ -158,6 +158,19 @@ db.exec(`
     FOREIGN KEY (account_id) REFERENCES accounts(id)
   );
 
+  CREATE TABLE IF NOT EXISTS trial_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom TEXT NOT NULL,
+    prenom TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT NOT NULL,
+    societe TEXT NOT NULL,
+    status TEXT DEFAULT 'en_attente',
+    created_at TEXT DEFAULT (datetime('now')),
+    treated_at TEXT,
+    treated_by INTEGER
+  );
+
   CREATE TABLE IF NOT EXISTS settings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     account_id INTEGER NOT NULL,
@@ -571,6 +584,73 @@ function traccarProxy(path, req, res) {
 app.get('/api/traccar/test', auth, (req, res) => traccarProxy('/api/server', req, res));
 app.get('/api/traccar/devices', auth, (req, res) => traccarProxy('/api/devices', req, res));
 app.get('/api/traccar/positions', auth, (req, res) => traccarProxy('/api/positions', req, res));
+
+// ─── TRIAL REQUESTS ──────────────────────────────────────────────────────────
+// Public route - no auth needed
+app.post('/api/trial-request', (req, res) => {
+  const { nom, prenom, phone, email, societe } = req.body;
+  if(!nom||!prenom||!phone||!email||!societe)
+    return res.status(400).json({ error: 'Tous les champs sont obligatoires' });
+  // Check if email already requested
+  const existing = db.prepare('SELECT id FROM trial_requests WHERE email=?').get(email.toLowerCase());
+  if(existing) return res.status(400).json({ error: 'Une demande existe déjà pour cet email' });
+  const r = db.prepare(
+    'INSERT INTO trial_requests (nom,prenom,phone,email,societe) VALUES (?,?,?,?,?)'
+  ).run(nom.trim(), prenom.trim(), phone.trim(), email.toLowerCase().trim(), societe.trim());
+  console.log(`✅ Nouvelle demande essai: ${nom} ${prenom} - ${societe} - ${email}`);
+  res.json({ success: true, id: r.lastInsertRowid });
+});
+
+// Super admin - get all requests
+app.get('/api/admin/trial-requests', auth, superOnly, (req, res) => {
+  const requests = db.prepare(
+    "SELECT * FROM trial_requests ORDER BY created_at DESC"
+  ).all();
+  res.json(requests);
+});
+
+// Super admin - approve request (creates account)
+app.post('/api/admin/trial-requests/:id/approve', auth, superOnly, (req, res) => {
+  const req2 = db.prepare('SELECT * FROM trial_requests WHERE id=?').get(req.params.id);
+  if(!req2) return res.status(404).json({ error: 'Demande introuvable' });
+  if(req2.status === 'approuve') return res.status(400).json({ error: 'Déjà approuvée' });
+
+  const { plan, password } = req.body;
+  const existing = db.prepare('SELECT id FROM accounts WHERE email=?').get(req2.email);
+  if(existing) {
+    // Update existing account
+    db.prepare("UPDATE trial_requests SET status='approuve', treated_at=datetime('now'), treated_by=? WHERE id=?")
+      .run(req.account.id, req.params.id);
+    return res.json({ success: true, message: 'Compte existant mis à jour' });
+  }
+
+  // Create account
+  const hash = require('bcryptjs').hashSync(password || 'GFM2026!', 10);
+  const days = plan==='life' ? 36500 : plan==='year' ? 365 : plan==='month' ? 30 : 48/24;
+  const expiry = new Date();
+  expiry.setDate(expiry.getDate() + days);
+
+  const result = db.prepare(`INSERT INTO accounts (name,email,password,role,company,phone,plan,expires_at)
+    VALUES (?,?,?,'client',?,?,?,?)`)
+    .run(req2.nom+' '+req2.prenom, req2.email, hash, req2.societe, req2.phone, plan||'trial', expiry.toISOString().split('T')[0]);
+
+  // Welcome alert
+  db.prepare("INSERT INTO alerts (account_id,type,title,desc) VALUES (?,?,?,?)")
+    .run(result.lastInsertRowid, 'info', 'Bienvenue sur Gestion Flotte Maroc', 'Votre compte a été activé. Commencez par ajouter vos véhicules.');
+
+  // Mark request as approved
+  db.prepare("UPDATE trial_requests SET status='approuve', treated_at=datetime('now'), treated_by=? WHERE id=?")
+    .run(req.account.id, req.params.id);
+
+  res.json({ success: true, account_id: result.lastInsertRowid, email: req2.email, password: password||'GFM2026!' });
+});
+
+// Super admin - reject request
+app.post('/api/admin/trial-requests/:id/reject', auth, superOnly, (req, res) => {
+  db.prepare("UPDATE trial_requests SET status='refuse', treated_at=datetime('now'), treated_by=? WHERE id=?")
+    .run(req.account.id, req.params.id);
+  res.json({ success: true });
+});
 
 // ─── SPA FALLBACK ─────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
