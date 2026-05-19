@@ -311,6 +311,15 @@ async function initApp() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('appPage').style.display = 'flex';
 
+  // TOUJOURS cacher le bouton Super Admin au debut - ne s affiche que si role=super
+  const btnSA = document.getElementById('btnSuperAdmin');
+  if(btnSA) {
+    btnSA.classList.add('hidden');
+    btnSA.style.display = 'none';
+  }
+  // Vider la sidebar pour la reconstruire proprement
+  document.getElementById('sidebarNav').innerHTML = '';
+
   // User info
   const name = currentAccount.name;
   const initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
@@ -2014,19 +2023,37 @@ async function fetchGPS() {
 
 async function connectTraccar() {
   const url = document.getElementById('tc_url').value.trim();
-  const user = document.getElementById('tc_user').value;
+  const user = document.getElementById('tc_user').value.trim();
   const pass = document.getElementById('tc_pass').value;
   if(!url){toast('URL obligatoire','error');return;}
   const aid = currentAccount?.id || 'default';
-  localStorage.setItem('gfm_traccar_url_'+aid,url);
-  localStorage.setItem('gfm_traccar_user_'+aid,user);
-  localStorage.setItem('gfm_traccar_pass_'+aid,pass);
-  closeModal();
-  await fetchGPS();
-  renderPage('gps');
-  // Auto-refresh every 10s
-  if(gpsInterval) clearInterval(gpsInterval);
-  if(gpsConnected) gpsInterval = setInterval(()=>{fetchGPS().then(()=>{ if(currentPage==='gps') renderPage('gps'); });},10000);
+
+  toast('Test connexion Traccar...','info');
+  try {
+    // Test via proxy backend
+    const params = new URLSearchParams({traccar_url:url, traccar_user:user, traccar_pass:pass});
+    await api('GET', '/api/traccar/test?'+params);
+
+    // Connexion OK - sauvegarder
+    localStorage.setItem('gfm_traccar_url_'+aid, url);
+    localStorage.setItem('gfm_traccar_user_'+aid, user);
+    localStorage.setItem('gfm_traccar_pass_'+aid, pass);
+
+    // Sauvegarder aussi en base (persistance entre sessions)
+    await api('POST', '/api/settings/traccar_url', {value: url});
+    await api('POST', '/api/settings/traccar_user', {value: user});
+    await api('POST', '/api/settings/traccar_pass', {value: pass});
+
+    closeModal();
+    await fetchGPS();
+    renderPage('gps');
+    if(gpsInterval) clearInterval(gpsInterval);
+    if(gpsConnected) {
+      gpsInterval = setInterval(()=>{fetchGPS().then(()=>{ if(currentPage==='gps') renderPage('gps'); });},10000);
+    }
+  } catch(e) {
+    toast('Connexion echouee: '+(e.error||e.message||'Verifiez URL et identifiants'),'error');
+  }
 }
 
 // ─── AUTO LOGIN ───────────────────────────────────────────────────────────────
@@ -2037,6 +2064,17 @@ window.onload = async () => {
       await initApp();
       // Auto-reconnect Traccar if URL was saved
       const aid = currentAccount?.id || 'default';
+      // Try to restore Traccar config from server DB first
+      try {
+        const [urlRes, userRes, passRes] = await Promise.all([
+          api('GET', '/api/settings/traccar_url'),
+          api('GET', '/api/settings/traccar_user'),
+          api('GET', '/api/settings/traccar_pass'),
+        ]);
+        if(urlRes.value) localStorage.setItem('gfm_traccar_url_'+aid, urlRes.value);
+        if(userRes.value) localStorage.setItem('gfm_traccar_user_'+aid, userRes.value);
+        if(passRes.value) localStorage.setItem('gfm_traccar_pass_'+aid, passRes.value);
+      } catch(e) { console.log('No Traccar config in DB'); }
       const traccarUrl = localStorage.getItem('gfm_traccar_url_'+aid);
       if(traccarUrl) {
         fetchGPS().then(()=>{

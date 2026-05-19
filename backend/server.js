@@ -158,6 +158,15 @@ db.exec(`
     FOREIGN KEY (account_id) REFERENCES accounts(id)
   );
 
+  CREATE TABLE IF NOT EXISTS settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL,
+    key TEXT NOT NULL,
+    value TEXT,
+    UNIQUE(account_id, key),
+    FOREIGN KEY (account_id) REFERENCES accounts(id)
+  );
+
   CREATE TABLE IF NOT EXISTS alerts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     account_id INTEGER NOT NULL,
@@ -505,59 +514,63 @@ app.get('/api/admin/stats', auth, superOnly, (req, res) => {
   res.json({ total, active, expired, revenue30, revenueYear, revenueLife, totalRevenue });
 });
 
-// ─── TRACCAR PROXY ───────────────────────────────────────────────────────────
-// Proxifie les requêtes vers Traccar pour éviter les problèmes CORS
-app.get('/api/traccar/devices', auth, async (req, res) => {
-  const { traccar_url, traccar_user, traccar_pass } = req.query;
-  if(!traccar_url) return res.status(400).json({ error: 'traccar_url requis' });
-  try {
-    const https = require('https');
-    const http = require('http');
-    const url = new URL('/api/devices', traccar_url);
-    const creds = Buffer.from(`${traccar_user}:${traccar_pass}`).toString('base64');
-    const client = url.protocol === 'https:' ? https : http;
-    const request = client.get({
-      hostname: url.hostname,
-      port: url.port || (url.protocol === 'https:' ? 443 : 80),
-      path: url.pathname,
-      headers: { 'Authorization': `Basic ${creds}`, 'Accept': 'application/json' }
-    }, (response) => {
-      let data = '';
-      response.on('data', chunk => data += chunk);
-      response.on('end', () => {
-        try { res.json(JSON.parse(data)); } catch(e) { res.status(500).json({ error: 'Invalid response from Traccar' }); }
-      });
-    });
-    request.on('error', (e) => res.status(500).json({ error: e.message }));
-    request.end();
-  } catch(e) { res.status(500).json({ error: e.message }); }
+// ─── SETTINGS API ────────────────────────────────────────────────────────────
+app.get('/api/settings/:key', auth, (req, res) => {
+  const row = db.prepare('SELECT value FROM settings WHERE account_id=? AND key=?').get(req.account.id, req.params.key);
+  res.json({ value: row ? row.value : null });
 });
 
-app.get('/api/traccar/positions', auth, async (req, res) => {
+app.post('/api/settings/:key', auth, (req, res) => {
+  const { value } = req.body;
+  db.prepare('INSERT INTO settings (account_id,key,value) VALUES (?,?,?) ON CONFLICT(account_id,key) DO UPDATE SET value=excluded.value')
+    .run(req.account.id, req.params.key, value);
+  res.json({ success: true });
+});
+
+// ─── TRACCAR PROXY ───────────────────────────────────────────────────────────
+// Proxifie les requêtes vers Traccar pour éviter les problèmes CORS
+// Generic Traccar proxy - avoids CORS
+function traccarProxy(path, req, res) {
   const { traccar_url, traccar_user, traccar_pass } = req.query;
   if(!traccar_url) return res.status(400).json({ error: 'traccar_url requis' });
   try {
     const https = require('https');
     const http = require('http');
-    const url = new URL('/api/positions', traccar_url);
-    const creds = Buffer.from(`${traccar_user}:${traccar_pass}`).toString('base64');
-    const client = url.protocol === 'https:' ? https : http;
-    const request = client.get({
-      hostname: url.hostname,
-      port: url.port || (url.protocol === 'https:' ? 443 : 80),
-      path: url.pathname,
-      headers: { 'Authorization': `Basic ${creds}`, 'Accept': 'application/json' }
-    }, (response) => {
+    const fullUrl = new URL(path, traccar_url.replace(/\/$/, '') + '/');
+    const creds = Buffer.from((traccar_user||'') + ':' + (traccar_pass||'')).toString('base64');
+    const client = fullUrl.protocol === 'https:' ? https : http;
+    const options = {
+      hostname: fullUrl.hostname,
+      port: fullUrl.port || (fullUrl.protocol === 'https:' ? 443 : 80),
+      path: fullUrl.pathname,
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + creds,
+        'Accept': 'application/json',
+      },
+      timeout: 8000
+    };
+    const request = client.request(options, (response) => {
+      if (response.statusCode === 401) return res.status(401).json({ error: 'Identifiants Traccar incorrects (401)' });
+      if (response.statusCode >= 400) return res.status(response.statusCode).json({ error: 'Traccar erreur ' + response.statusCode });
       let data = '';
       response.on('data', chunk => data += chunk);
       response.on('end', () => {
-        try { res.json(JSON.parse(data)); } catch(e) { res.status(500).json({ error: 'Invalid response from Traccar' }); }
+        try { res.json(JSON.parse(data)); }
+        catch(e) { res.status(500).json({ error: 'Reponse Traccar invalide' }); }
       });
     });
-    request.on('error', (e) => res.status(500).json({ error: e.message }));
+    request.on('timeout', () => { request.destroy(); res.status(504).json({ error: 'Traccar timeout - verifiez l URL' }); });
+    request.on('error', (e) => res.status(502).json({ error: 'Impossible de joindre Traccar: ' + e.message }));
     request.end();
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
+  } catch(e) {
+    res.status(500).json({ error: 'URL invalide: ' + e.message });
+  }
+}
+
+app.get('/api/traccar/test', auth, (req, res) => traccarProxy('/api/server', req, res));
+app.get('/api/traccar/devices', auth, (req, res) => traccarProxy('/api/devices', req, res));
+app.get('/api/traccar/positions', auth, (req, res) => traccarProxy('/api/positions', req, res));
 
 // ─── SPA FALLBACK ─────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
