@@ -1,10 +1,12 @@
-FROM node:20-slim
+FROM node:20-bullseye-slim
 
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y python3 make g++ && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY backend/package*.json ./
-RUN npm install
+RUN npm install --build-from-source
 COPY backend/ ./
 COPY frontend/ ./frontend/
 
