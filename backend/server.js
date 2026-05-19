@@ -505,6 +505,60 @@ app.get('/api/admin/stats', auth, superOnly, (req, res) => {
   res.json({ total, active, expired, revenue30, revenueYear, revenueLife, totalRevenue });
 });
 
+// ─── TRACCAR PROXY ───────────────────────────────────────────────────────────
+// Proxifie les requêtes vers Traccar pour éviter les problèmes CORS
+app.get('/api/traccar/devices', auth, async (req, res) => {
+  const { traccar_url, traccar_user, traccar_pass } = req.query;
+  if(!traccar_url) return res.status(400).json({ error: 'traccar_url requis' });
+  try {
+    const https = require('https');
+    const http = require('http');
+    const url = new URL('/api/devices', traccar_url);
+    const creds = Buffer.from(`${traccar_user}:${traccar_pass}`).toString('base64');
+    const client = url.protocol === 'https:' ? https : http;
+    const request = client.get({
+      hostname: url.hostname,
+      port: url.port || (url.protocol === 'https:' ? 443 : 80),
+      path: url.pathname,
+      headers: { 'Authorization': `Basic ${creds}`, 'Accept': 'application/json' }
+    }, (response) => {
+      let data = '';
+      response.on('data', chunk => data += chunk);
+      response.on('end', () => {
+        try { res.json(JSON.parse(data)); } catch(e) { res.status(500).json({ error: 'Invalid response from Traccar' }); }
+      });
+    });
+    request.on('error', (e) => res.status(500).json({ error: e.message }));
+    request.end();
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/traccar/positions', auth, async (req, res) => {
+  const { traccar_url, traccar_user, traccar_pass } = req.query;
+  if(!traccar_url) return res.status(400).json({ error: 'traccar_url requis' });
+  try {
+    const https = require('https');
+    const http = require('http');
+    const url = new URL('/api/positions', traccar_url);
+    const creds = Buffer.from(`${traccar_user}:${traccar_pass}`).toString('base64');
+    const client = url.protocol === 'https:' ? https : http;
+    const request = client.get({
+      hostname: url.hostname,
+      port: url.port || (url.protocol === 'https:' ? 443 : 80),
+      path: url.pathname,
+      headers: { 'Authorization': `Basic ${creds}`, 'Accept': 'application/json' }
+    }, (response) => {
+      let data = '';
+      response.on('data', chunk => data += chunk);
+      response.on('end', () => {
+        try { res.json(JSON.parse(data)); } catch(e) { res.status(500).json({ error: 'Invalid response from Traccar' }); }
+      });
+    });
+    request.on('error', (e) => res.status(500).json({ error: e.message }));
+    request.end();
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ─── SPA FALLBACK ─────────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));

@@ -1986,18 +1986,15 @@ async function fetchGPS() {
   const pass = localStorage.getItem('gfm_traccar_pass_'+aid);
   if(!url) return;
   try {
-    const creds = btoa(user+':'+pass);
-    const headers = {'Authorization':'Basic '+creds,'Accept':'application/json'};
-    const [devRes, posRes] = await Promise.all([
-      fetch(url.replace(/\/$/,'')+'/api/devices',{headers}),
-      fetch(url.replace(/\/$/,'')+'/api/positions',{headers})
+    // Use backend proxy to avoid CORS issues
+    const params = new URLSearchParams({traccar_url:url, traccar_user:user||'', traccar_pass:pass||''});
+    const [devData, posData] = await Promise.all([
+      api('GET', '/api/traccar/devices?'+params),
+      api('GET', '/api/traccar/positions?'+params),
     ]);
-    if(!devRes.ok) throw new Error('Auth failed');
-    const devices = await devRes.json();
-    const positions = await posRes.json();
-    gpsDevices = devices;
-    gpsPositions = devices.map(d=>{
-      const pos = positions.find(p=>p.deviceId===d.id);
+    gpsDevices = devData;
+    gpsPositions = devData.map(d=>{
+      const pos = posData.find(p=>p.deviceId===d.id);
       return {
         id:d.id, name:d.name,
         lat:pos?.latitude||0, lng:pos?.longitude||0,
@@ -2008,10 +2005,10 @@ async function fetchGPS() {
       };
     });
     gpsConnected = true;
-    toast('Traccar connecté — '+devices.length+' appareil(s) ✓','success');
+    toast('Traccar connecté — '+devData.length+' appareil(s) ✓','success');
   } catch(e) {
     gpsConnected = false;
-    toast('Connexion Traccar échouée: '+e.message,'error');
+    toast('Connexion Traccar échouée: '+(e.error||e.message||'Erreur'),'error');
   }
 }
 
