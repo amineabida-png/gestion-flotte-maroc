@@ -2033,7 +2033,20 @@ window.onload = async () => {
   if (token) {
     try {
       currentAccount = await api('GET','/api/me');
-      initApp();
+      await initApp();
+      // Auto-reconnect Traccar if URL was saved
+      const traccarUrl = localStorage.getItem('gfm_traccar_url');
+      if(traccarUrl) {
+        fetchGPS().then(()=>{
+          if(gpsConnected) {
+            if(gpsInterval) clearInterval(gpsInterval);
+            gpsInterval = setInterval(()=>{
+              fetchGPS().then(()=>{ if(currentPage==='gps') renderPage('gps'); });
+            },10000);
+            console.log('Traccar auto-reconnected');
+          }
+        });
+      }
     } catch(e) {
       localStorage.removeItem('gfm_token');
       token = null;
