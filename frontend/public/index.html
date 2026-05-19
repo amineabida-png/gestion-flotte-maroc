@@ -2375,7 +2375,7 @@ function renderGPS(el) {
 
 function gpsConfigForm() {
   const aid = currentAccount?.id || 'default';
-  const url = localStorage.getItem('gfm_traccar_url_'+aid)||'https://traccar-server-production.up.railway.app';
+  const url = localStorage.getItem('gfm_traccar_url_'+aid)||'https://traccar.up.railway.app';
   const user = localStorage.getItem('gfm_traccar_user_'+aid)||'admin@gfm.ma';
   const pass = localStorage.getItem('gfm_traccar_pass_'+aid)||'';
   openModal('Configuration Traccar GPS', `
@@ -2389,7 +2389,7 @@ function gpsConfigForm() {
         5. Connecte ici → le camion s'affiche en temps réel
       </div>
     </div>
-    <div class="form-field" style="margin-bottom:14px"><label>URL Traccar *</label><input id="tc_url" value="${url}" placeholder="https://traccar-server-production.up.railway.app"></div>
+    <div class="form-field" style="margin-bottom:14px"><label>URL Traccar *</label><input id="tc_url" value="${url}" placeholder="https://traccar.up.railway.app"></div>
     <div class="form-grid">
       <div class="form-field"><label>Email</label><input id="tc_user" value="${user}" placeholder="admin@gfm.ma"></div>
       <div class="form-field"><label>Mot de passe</label><input type="password" id="tc_pass" value="${pass}" placeholder="••••••••"></div>
