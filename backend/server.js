@@ -543,41 +543,80 @@ app.post('/api/settings/:key', auth, (req, res) => {
 // ─── TRACCAR PROXY ───────────────────────────────────────────────────────────
 // Proxifie les requêtes vers Traccar pour éviter les problèmes CORS
 // Generic Traccar proxy - avoids CORS
-function traccarProxy(path, req, res) {
-  const { traccar_url, traccar_user, traccar_pass } = req.query;
-  if(!traccar_url) return res.status(400).json({ error: 'traccar_url requis' });
-  try {
-    const https = require('https');
-    const http = require('http');
-    const fullUrl = new URL(path, traccar_url.replace(/\/$/, '') + '/');
-    const creds = Buffer.from((traccar_user||'') + ':' + (traccar_pass||'')).toString('base64');
-    const client = fullUrl.protocol === 'https:' ? https : http;
-    const options = {
-      hostname: fullUrl.hostname,
-      port: fullUrl.port || (fullUrl.protocol === 'https:' ? 443 : 80),
-      path: fullUrl.pathname,
-      method: 'GET',
+// Traccar uses session-based auth: first POST /api/session then use cookie
+async function traccarRequest(baseUrl, user, pass, path) {
+  const https = require('https');
+  const http = require('http');
+  const base = baseUrl.replace(/\/$/, '');
+
+  return new Promise((resolve, reject) => {
+    // Step 1: POST /api/session to get session cookie
+    const sessionUrl = new URL('/api/session', base);
+    const postData = `email=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`;
+    const client = sessionUrl.protocol === 'https:' ? https : http;
+
+    const sessionReq = client.request({
+      hostname: sessionUrl.hostname,
+      port: sessionUrl.port || (sessionUrl.protocol === 'https:' ? 443 : 80),
+      path: '/api/session',
+      method: 'POST',
       headers: {
-        'Authorization': 'Basic ' + creds,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(postData),
         'Accept': 'application/json',
       },
       timeout: 8000
-    };
-    const request = client.request(options, (response) => {
-      if (response.statusCode === 401) return res.status(401).json({ error: 'Identifiants Traccar incorrects (401)' });
-      if (response.statusCode >= 400) return res.status(response.statusCode).json({ error: 'Traccar erreur ' + response.statusCode });
+    }, (res) => {
       let data = '';
-      response.on('data', chunk => data += chunk);
-      response.on('end', () => {
-        try { res.json(JSON.parse(data)); }
-        catch(e) { res.status(500).json({ error: 'Reponse Traccar invalide' }); }
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode === 401) return reject({ status: 401, error: 'Email ou mot de passe Traccar incorrect' });
+        if (res.statusCode >= 400) return reject({ status: res.statusCode, error: 'Erreur Traccar login: ' + res.statusCode });
+
+        const cookie = res.headers['set-cookie']?.map(c => c.split(';')[0]).join('; ') || '';
+        if (!cookie) return reject({ status: 401, error: 'Session Traccar invalide - verifiez les identifiants' });
+
+        // Step 2: GET the requested path with session cookie
+        const dataUrl = new URL(path, base);
+        const dataReq = client.request({
+          hostname: dataUrl.hostname,
+          port: dataUrl.port || (dataUrl.protocol === 'https:' ? 443 : 80),
+          path: dataUrl.pathname,
+          method: 'GET',
+          headers: {
+            'Cookie': cookie,
+            'Accept': 'application/json',
+          },
+          timeout: 8000
+        }, (res2) => {
+          let data2 = '';
+          res2.on('data', chunk => data2 += chunk);
+          res2.on('end', () => {
+            try { resolve(JSON.parse(data2)); }
+            catch(e) { reject({ status: 500, error: 'Reponse Traccar invalide: ' + data2.slice(0,100) }); }
+          });
+        });
+        dataReq.on('timeout', () => { dataReq.destroy(); reject({ status: 504, error: 'Traccar timeout' }); });
+        dataReq.on('error', e => reject({ status: 502, error: e.message }));
+        dataReq.end();
       });
     });
-    request.on('timeout', () => { request.destroy(); res.status(504).json({ error: 'Traccar timeout - verifiez l URL' }); });
-    request.on('error', (e) => res.status(502).json({ error: 'Impossible de joindre Traccar: ' + e.message }));
-    request.end();
+
+    sessionReq.on('timeout', () => { sessionReq.destroy(); reject({ status: 504, error: 'Traccar inaccessible - verifiez l URL' }); });
+    sessionReq.on('error', e => reject({ status: 502, error: 'Impossible de joindre Traccar: ' + e.message }));
+    sessionReq.write(postData);
+    sessionReq.end();
+  });
+}
+
+async function traccarProxy(path, req, res) {
+  const { traccar_url, traccar_user, traccar_pass } = req.query;
+  if(!traccar_url) return res.status(400).json({ error: 'traccar_url requis' });
+  try {
+    const data = await traccarRequest(traccar_url, traccar_user||'', traccar_pass||'', path);
+    res.json(data);
   } catch(e) {
-    res.status(500).json({ error: 'URL invalide: ' + e.message });
+    res.status(e.status||500).json({ error: e.error||e.message||'Erreur inconnue' });
   }
 }
 
