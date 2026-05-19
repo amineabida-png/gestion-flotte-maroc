@@ -1819,9 +1819,10 @@ let gpsSelected = null;
 
 function renderGPS(el) {
   const vehicles = state.vehicles || [];
-  const traccarUrl = localStorage.getItem('gfm_traccar_url') || '';
-  const traccarUser = localStorage.getItem('gfm_traccar_user') || 'admin';
-  const traccarPass = localStorage.getItem('gfm_traccar_pass') || 'admin';
+  const aid = currentAccount?.id || 'default';
+  const traccarUrl = localStorage.getItem('gfm_traccar_url_'+aid) || '';
+  const traccarUser = localStorage.getItem('gfm_traccar_user_'+aid) || 'admin';
+  const traccarPass = localStorage.getItem('gfm_traccar_pass_'+aid) || 'admin';
 
   // Display: real if connected, demo otherwise
   const displayV = gpsConnected && gpsPositions.length > 0
@@ -1946,9 +1947,10 @@ function renderGPS(el) {
 }
 
 function gpsConfigForm() {
-  const url = localStorage.getItem('gfm_traccar_url')||'https://traccar-server-production.up.railway.app';
-  const user = localStorage.getItem('gfm_traccar_user')||'admin@gfm.ma';
-  const pass = localStorage.getItem('gfm_traccar_pass')||'';
+  const aid = currentAccount?.id || 'default';
+  const url = localStorage.getItem('gfm_traccar_url_'+aid)||'https://traccar-server-production.up.railway.app';
+  const user = localStorage.getItem('gfm_traccar_user_'+aid)||'admin@gfm.ma';
+  const pass = localStorage.getItem('gfm_traccar_pass_'+aid)||'';
   openModal('Configuration Traccar GPS', `
     <div style="padding:12px;background:#f9731610;border:1px solid #f9731630;border-radius:10px;margin-bottom:16px">
       <div style="font-size:12px;font-weight:700;color:#f97316;margin-bottom:6px">Comment connecter un camion ?</div>
@@ -1978,9 +1980,10 @@ function gpsConfigForm() {
 }
 
 async function fetchGPS() {
-  const url = localStorage.getItem('gfm_traccar_url');
-  const user = localStorage.getItem('gfm_traccar_user');
-  const pass = localStorage.getItem('gfm_traccar_pass');
+  const aid = currentAccount?.id || 'default';
+  const url = localStorage.getItem('gfm_traccar_url_'+aid);
+  const user = localStorage.getItem('gfm_traccar_user_'+aid);
+  const pass = localStorage.getItem('gfm_traccar_pass_'+aid);
   if(!url) return;
   try {
     const creds = btoa(user+':'+pass);
@@ -2017,9 +2020,10 @@ async function connectTraccar() {
   const user = document.getElementById('tc_user').value;
   const pass = document.getElementById('tc_pass').value;
   if(!url){toast('URL obligatoire','error');return;}
-  localStorage.setItem('gfm_traccar_url',url);
-  localStorage.setItem('gfm_traccar_user',user);
-  localStorage.setItem('gfm_traccar_pass',pass);
+  const aid = currentAccount?.id || 'default';
+  localStorage.setItem('gfm_traccar_url_'+aid,url);
+  localStorage.setItem('gfm_traccar_user_'+aid,user);
+  localStorage.setItem('gfm_traccar_pass_'+aid,pass);
   closeModal();
   await fetchGPS();
   renderPage('gps');
@@ -2035,7 +2039,8 @@ window.onload = async () => {
       currentAccount = await api('GET','/api/me');
       await initApp();
       // Auto-reconnect Traccar if URL was saved
-      const traccarUrl = localStorage.getItem('gfm_traccar_url');
+      const aid = currentAccount?.id || 'default';
+      const traccarUrl = localStorage.getItem('gfm_traccar_url_'+aid);
       if(traccarUrl) {
         fetchGPS().then(()=>{
           if(gpsConnected) {
