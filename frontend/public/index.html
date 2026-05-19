@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion Flotte Maroc</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#060d1a;color:#f1f5f9;font-family:'Segoe UI',sans-serif;min-height:100vh}
+.hidden{display:none!important}
+
+/* LOGIN */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#060d1a,#0a1628)}
+.login-box{background:#0d1829;border:1px solid #1a2744;border-radius:20px;padding:40px;width:100%;max-width:420px}
+.logo{text-align:center;margin-bottom:28px}
+.logo-icon{width:60px;height:60px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;margin:0 auto 12px;color:#fff}
+.logo h1{font-size:20px;font-weight:900;letter-spacing:0.5px}
+.logo p{font-size:11px;color:#f97316;font-weight:700;letter-spacing:1.5px;margin-top:4px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px}
+.field input{width:100%;padding:12px 14px;background:#0a1520;border:1px solid #1a2744;border-radius:10px;color:#f1f5f9;font-size:14px;outline:none;transition:border-color 0.2s}
+.field input:focus{border-color:#f97316}
+.btn-primary{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-weight:800;font-size:15px;cursor:pointer;margin-top:8px}
+.btn-primary:hover{opacity:0.9}
+.error-msg{color:#ef4444;font-size:13px;margin-top:10px;text-align:center;display:none}
+
+/* APP */
+#appPage{display:none;flex:1}
+.app-layout{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:#080f1e;border-right:1px solid #1a2744;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.sidebar-header{padding:18px 16px;border-bottom:1px solid #1a2744;display:flex;align-items:center;gap:10px}
+.sidebar-logo{width:36px;height:36px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex-shrink:0}
+.sidebar-title{font-size:13px;font-weight:800;line-height:1.3}
+.sidebar-subtitle{font-size:9px;color:#f97316;font-weight:700;letter-spacing:1px}
+.sidebar-nav{flex:1;padding:8px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:#94a3b8;border:none;background:transparent;width:100%;text-align:left;border-left:3px solid transparent;transition:all 0.2s;margin-bottom:2px}
+.nav-item:hover{background:#ffffff10;color:#f1f5f9}
+.nav-item.active{background:#f9731615;color:#f97316;font-weight:700;border-left-color:#f97316}
+.nav-item .icon{font-size:14px;flex-shrink:0}
+.nav-badge{background:#ef4444;color:white;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:auto}
+.sidebar-footer{padding:12px 14px;border-top:1px solid #1a2744}
+.user-info{display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0}
+.user-name{font-size:12px;font-weight:700;color:#f1f5f9}
+.user-role{font-size:10px;color:#94a3b8}
+.license-badge{margin-top:8px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;text-align:center}
+
+/* MAIN */
+.main-content{margin-left:240px;flex:1;min-height:100vh;background:#060d1a}
+.topbar{height:50px;background:#080f1e;border-bottom:1px solid #1a2744;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:12px;font-weight:700;color:#475569;letter-spacing:0.5px}
+.topbar-actions{display:flex;gap:10px;align-items:center}
+.badge-expire{padding:4px 10px;border-radius:6px;background:#ef444418;border:1px solid #ef444430;font-size:11px;font-weight:700;color:#ef4444}
+.btn-super{padding:5px 12px;border-radius:8px;border:1px solid #f59e0b40;background:#f59e0b18;color:#f59e0b;font-weight:700;cursor:pointer;font-size:11px}
+.btn-logout{padding:5px 12px;border-radius:8px;border:1px solid #1a2744;background:transparent;color:#94a3b8;cursor:pointer;font-size:11px}
+.page{padding:28px;display:none}
+.page.active{display:block}
+
+/* CARDS */
+.card{background:#0d1829;border:1px solid #1a2744;border-radius:16px;padding:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#0d1829;border:1px solid #1a2744;border-radius:16px;padding:20px}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.stat-value{font-size:24px;font-weight:800;letter-spacing:-0.5px}
+.stat-label{font-size:12px;color:#94a3b8;margin-top:2px}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.page-title{font-size:24px;font-weight:800}
+.page-sub{font-size:13px;color:#94a3b8;margin-top:4px}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:13px;transition:all 0.15s}
+.btn:hover{transform:translateY(-1px);opacity:0.9}
+.btn-orange{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff}
+.btn-ghost{background:transparent;border:1px solid #1a2744;color:#94a3b8}
+.btn-danger{background:#ef444418;border:1px solid #ef444440;color:#ef4444}
+.btn-success{background:#22c55e18;border:1px solid #22c55e40;color:#22c55e}
+.btn-sm{padding:5px 12px;font-size:11px;border-radius:8px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:8px 12px;text-align:left;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;border-bottom:1px solid #1a2744}
+td{padding:12px;font-size:13px;border-bottom:1px solid #0f1e35}
+tr:hover td{background:#ffffff04}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-dot{width:5px;height:5px;border-radius:50%}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:#00000090;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;display:none}
+.modal-overlay.open{display:flex}
+.modal{background:#0d1829;border:1px solid #1a2744;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px;border-bottom:1px solid #1a2744;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:24px}
+.modal-footer{padding:0 24px 24px;display:flex;gap:10px;justify-content:flex-end}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-field{margin-bottom:0}
+.form-field label{display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:10px 14px;background:#0a1520;border:1px solid #1a2744;border-radius:10px;color:#f1f5f9;font-size:13px;outline:none;box-sizing:border-box}
+.form-field input:focus,.form-field select:focus{border-color:#f97316}
+.full-width{grid-column:1/-1}
+
+/* SUPER ADMIN */
+.admin-panel{padding:28px}
+.plan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+.plan-card{padding:20px;border-radius:16px;border:2px solid #1a2744;cursor:pointer;text-align:center;transition:all 0.2s}
+.plan-card.selected{border-color:#f97316;background:#f9731610}
+
+/* ALERTS */
+.alert-card{background:#0d1829;border:1px solid #1a2744;border-radius:12px;padding:16px;margin-bottom:10px;border-left-width:4px;display:flex;align-items:center;gap:14px}
+.alert-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* SEARCH */
+.search-bar{padding:9px 14px;background:#0a1520;border:1px solid #1a2744;border-radius:10px;color:#f1f5f9;font-size:13px;outline:none;width:280px}
+.search-bar:focus{border-color:#f97316}
+.filter-btns{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:20px;border:1px solid #1a2744;background:transparent;color:#94a3b8;font-size:11px;font-weight:700;cursor:pointer}
+.filter-btn.active{border-color:#f97316;background:#f9731620;color:#f97316}
+
+/* TOAST */
+#toastContainer{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;min-width:260px;animation:slideIn 0.3s ease;box-shadow:0 8px 24px #00000060}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast-success{background:#16a34a}
+.toast-error{background:#dc2626}
+.toast-info{background:#1d4ed8}
+
+/* CONFIRM */
+#confirmModal .modal{max-width:400px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:60px}
+  .sidebar-title,.sidebar-subtitle,.nav-item span:not(.icon),.user-name,.user-role,.nav-badge{display:none}
+  .main-content{margin-left:60px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="logo">
+      <div class="logo-icon">GF</div>
+      <h1>GESTION FLOTTE MAROC</h1>
+      <p>SOLUTION PRO TRANSPORT</p>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="votre@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Se connecter</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- APP PAGE -->
+<div id="appPage">
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">GF</div>
+        <div>
+          <div class="sidebar-title">GESTION FLOTTE</div>
+          <div class="sidebar-subtitle">MAROC</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">??</div>
+          <div>
+            <div class="user-name" id="userName">-</div>
+            <div class="user-role" id="userRoleLabel">-</div>
+          </div>
+        </div>
+        <div class="license-badge" id="licenseBadge"></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <div class="topbar">
+        <div class="topbar-title">GESTION FLOTTE MAROC</div>
+        <div class="topbar-actions">
+          <div id="expireBadge" class="badge-expire hidden"></div>
+          <button id="btnSuperAdmin" class="btn-super hidden" onclick="showPage('superadmin')">👑 Super Admin</button>
+          <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+        </div>
+      </div>
+
+      <!-- PAGES -->
+      <div id="page-dashboard" class="page active"></div>
+      <div id="page-vehicles" class="page"></div>
+      <div id="page-drivers" class="page"></div>
+      <div id="page-missions" class="page"></div>
+      <div id="page-invoices" class="page"></div>
+      <div id="page-fuel" class="page"></div>
+      <div id="page-maintenance" class="page"></div>
+      <div id="page-expenses" class="page"></div>
+      <div id="page-alerts" class="page"></div>
+      <div id="page-superadmin" class="page"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="mainModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle" style="font-size:16px;font-weight:800"></h3>
+      <button onclick="closeModal()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="confirmTitle" style="font-size:16px;font-weight:800"></h3></div>
+    <div class="modal-body"><p id="confirmMsg" style="color:#94a3b8;font-size:14px;line-height:1.6"></p></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('confirmModal').classList.remove('open')">Annuler</button>
+      <button class="btn btn-danger" id="confirmBtn">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let token = localStorage.getItem('gfm_token');
+let currentAccount = null;
+let currentPage = 'dashboard';
+let state = { vehicles:[], drivers:[], missions:[], invoices:[], fuels:[], expenses:[], maintenances:[], leaves:[], alerts:[] };
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function api(method, url, body) {
+  const opts = { method, headers: { 'Content-Type':'application/json' } };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function toast(msg, type='info') {
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  t.onclick = () => t.remove();
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  try {
+    const data = await api('POST', '/api/login', { email, password });
+    token = data.token;
+    localStorage.setItem('gfm_token', token);
+    currentAccount = data.account;
+    initApp();
+  } catch(e) {
+    errEl.textContent = e.error || 'Erreur de connexion';
+    errEl.style.display = 'block';
+  }
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Enter' && document.getElementById('loginPage').style.display!=='none') doLogin(); });
+
+function doLogout() {
+  localStorage.removeItem('gfm_token');
+  token = null;
+  currentAccount = null;
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('appPage').style.display = 'none';
+}
+
+// ─── INIT APP ─────────────────────────────────────────────────────────────────
+async function initApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display = 'flex';
+
+  // User info
+  const name = currentAccount.name;
+  const initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userRoleLabel').textContent = currentAccount.role === 'super' ? 'Super Admin' : currentAccount.company || 'Client';
+
+  // License badge
+  const lic = document.getElementById('licenseBadge');
+  if (currentAccount.role === 'super') {
+    lic.textContent = '👑 Super Admin';
+    lic.style.cssText = 'background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b40';
+    document.getElementById('btnSuperAdmin').classList.remove('hidden');
+  } else if (currentAccount.plan === 'life') {
+    lic.textContent = '∞ Licence à vie';
+    lic.style.cssText = 'background:#22c55e20;color:#22c55e;border:1px solid #22c55e40';
+  } else {
+    const days = Math.max(0, Math.ceil((new Date(currentAccount.expires_at)-new Date())/86400000));
+    lic.textContent = days + 'j restants';
+    lic.style.cssText = (days<=7?'background:#ef444418;color:#ef4444;border:1px solid #ef444430':'background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630');
+    if (days <= 7) {
+      document.getElementById('expireBadge').textContent = '⚠ Licence expire dans ' + days + 'j';
+      document.getElementById('expireBadge').classList.remove('hidden');
+    }
+  }
+
+  // Build sidebar
+  buildSidebar();
+
+  // Load all data
+  await loadAll();
+  showPage('dashboard');
+}
+
+function buildSidebar() {
+  const isSuper = currentAccount.role === 'super';
+  const items = [
+    {id:'dashboard', icon:'📊', label:'Dashboard'},
+    {id:'vehicles', icon:'🚛', label:'Flotte'},
+    {id:'drivers', icon:'👤', label:'Chauffeurs'},
+    {id:'missions', icon:'🗺', label:'Missions'},
+    {id:'invoices', icon:'📄', label:'Facturation'},
+    {id:'fuel', icon:'⛽', label:'Carburant'},
+    {id:'maintenance', icon:'🔧', label:'Maintenance'},
+    {id:'expenses', icon:'💸', label:'Dépenses'},
+    {id:'alerts', icon:'🔔', label:'Alertes', badge:true},
+  ];
+  if (isSuper) items.push({id:'superadmin', icon:'👑', label:'Super Admin'});
+
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = items.map(it => `
+    <button class="nav-item" id="nav-${it.id}" onclick="showPage('${it.id}')">
+      <span class="icon">${it.icon}</span>
+      <span>${it.label}</span>
+      ${it.badge ? '<span class="nav-badge hidden" id="alertBadge">0</span>' : ''}
+    </button>
+  `).join('');
+}
+
+async function loadAll() {
+  try {
+    const endpoints = ['vehicles','drivers','missions','invoices','fuels','expenses','maintenances','leaves','alerts'];
+    const results = await Promise.all(endpoints.map(e => api('GET', '/api/'+e)));
+    endpoints.forEach((e,i) => {
+      const key = e==='fuels'?'fuels':e==='maintenances'?'maintenances':e==='leaves'?'leaves':e;
+      state[e] = results[i];
+    });
+    // Update alert badge
+    const unread = state.alerts.filter(a=>!a.read).length;
+    const badge = document.getElementById('alertBadge');
+    if (badge) { badge.textContent = unread; badge.classList.toggle('hidden', unread===0); }
+  } catch(e) { console.error('Load error:', e); }
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const el = document.getElementById('page-'+page);
+  const nav = document.getElementById('nav-'+page);
+  if (el) el.classList.add('active');
+  if (nav) nav.classList.add('active');
+  currentPage = page;
+  renderPage(page);
+}
+
+function renderPage(page) {
+  const el = document.getElementById('page-'+page);
+  if (!el) return;
+  switch(page) {
+    case 'dashboard': renderDashboard(el); break;
+    case 'vehicles': renderVehicles(el); break;
+    case 'drivers': renderDrivers(el); break;
+    case 'missions': renderMissions(el); break;
+    case 'invoices': renderInvoices(el); break;
+    case 'fuel': renderFuel(el); break;
+    case 'maintenance': renderMaintenance(el); break;
+    case 'expenses': renderExpenses(el); break;
+    case 'alerts': renderAlerts(el); break;
+    case 'superadmin': renderSuperAdmin(el); break;
+  }
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function fmtMAD(n) { return Number(n||0).toLocaleString('fr-MA') + ' MAD'; }
+function badge(status) {
+  const colors = {en_cours:'#f97316',en_route:'#f97316',termine:'#22c55e',disponible:'#22c55e',planifie:'#3b82f6',annule:'#ef4444',maintenance:'#f59e0b',conge:'#a855f7',retard:'#ef4444',paye:'#22c55e',en_attente:'#f59e0b',actif:'#22c55e',approuve:'#22c55e',refuse:'#ef4444',urgent:'#ef4444',warning:'#f59e0b',info:'#3b82f6',active:'#22c55e',suspended:'#ef4444'};
+  const labels = {en_cours:'En cours',en_route:'En route',termine:'Terminé',disponible:'Disponible',planifie:'Planifié',annule:'Annulé',maintenance:'Maintenance',conge:'Congé',retard:'Retard',paye:'Payé',en_attente:'En attente',actif:'Actif',approuve:'Approuvé',refuse:'Refusé',urgent:'Urgent',warning:'Attention',info:'Info',active:'Actif',suspended:'Suspendu'};
+  const c = colors[status]||'#64748b';
+  return `<span class="badge" style="background:${c}20;color:${c}"><span class="badge-dot" style="background:${c}"></span>${labels[status]||status}</span>`;
+}
+
+function confirm(title, msg, cb) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmModal').classList.add('open');
+  document.getElementById('confirmBtn').onclick = () => { cb(); document.getElementById('confirmModal').classList.remove('open'); };
+}
+
+function openModal(title, bodyHtml, footerHtml) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFooter').innerHTML = footerHtml;
+  document.getElementById('mainModal').classList.add('open');
+}
+function closeModal() { document.getElementById('mainModal').classList.remove('open'); }
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+async function renderDashboard(el) {
+  let stats = {};
+  try { stats = await api('GET', '/api/stats'); } catch(e) {}
+  const v = state.vehicles || [];
+  const m = state.missions || [];
+  const inv = state.invoices || [];
+  el.innerHTML = `
+    <div style="margin-bottom:24px">
+      <div style="font-size:24px;font-weight:800">Tableau de bord</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:4px">Bienvenue, ${currentAccount.name}</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(stats.revenue||0)}</div><div class="stat-label">CA encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">🚛</div><div class="stat-value" style="color:#3b82f6">${stats.vehicles||0}</div><div class="stat-label">Véhicules</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">🗺</div><div class="stat-value" style="color:#22c55e">${stats.activeMissions||0}</div><div class="stat-label">Missions actives</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#ef444418">🔔</div><div class="stat-value" style="color:#ef4444">${stats.unreadAlerts||0}</div><div class="stat-label">Alertes non lues</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Dernières missions</div>
+        ${m.slice(0,5).map(ms=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #0f1e35">
+            <div><div style="font-size:13px;font-weight:700;color:#f97316">${ms.id}</div><div style="font-size:12px;color:#94a3b8">${ms.client} · ${ms.origin} → ${ms.destination}</div></div>
+            <div style="text-align:right"><div style="font-size:13px;font-weight:700">${fmtMAD(ms.amount)}</div>${badge(ms.status)}</div>
+          </div>`).join('') || '<p style="color:#94a3b8;font-size:13px">Aucune mission</p>'}
+      </div>
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">Récapitulatif</div>
+        ${[['Véhicules disponibles', v.filter(x=>x.status==='disponible').length+'/'+v.length,'#22c55e'],['En attente encaissement',fmtMAD(stats.pending||0),'#f59e0b'],['Total missions',stats.missions||0,'#3b82f6'],['Chauffeurs actifs',stats.drivers||0,'#f97316']].map(([l,v,c])=>`
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #0f1e35">
+            <span style="font-size:13px;color:#94a3b8">${l}</span>
+            <span style="font-size:13px;font-weight:800;color:${c}">${v}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ─── VEHICLES ─────────────────────────────────────────────────────────────────
+function renderVehicles(el) {
+  const v = state.vehicles || [];
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Gestion de la flotte</div><div class="page-sub">${v.length} véhicule(s)</div></div>
+      <button class="btn btn-orange" onclick="vehicleForm()">+ Ajouter</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+      ${v.map(x=>{
+        const dM=Math.ceil((new Date(x.maintenance)-new Date())/86400000);
+        return `<div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+            <div><div style="font-size:16px;font-weight:800">${x.plate}</div><div style="font-size:13px;color:#94a3b8">${x.model} · ${x.type}</div></div>
+            ${badge(x.status)}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="padding:8px;background:#ffffff06;border-radius:8px;text-align:center"><div style="font-size:11px;color:#94a3b8">Km</div><div style="font-size:13px;font-weight:800">${Number(x.km||0).toLocaleString()}</div></div>
+            <div style="padding:8px;background:#ffffff06;border-radius:8px;text-align:center"><div style="font-size:11px;color:#94a3b8">Carburant</div><div style="font-size:13px;font-weight:800;color:${x.fuel<30?'#ef4444':x.fuel<50?'#f59e0b':'#22c55e'}">${x.fuel||0}%</div></div>
+            <div style="padding:8px;background:#ffffff06;border-radius:8px;text-align:center"><div style="font-size:11px;color:#94a3b8">Maint.</div><div style="font-size:11px;font-weight:700;color:${dM<=14?'#ef4444':'#22c55e'}">${isNaN(dM)?'—':dM+'j'}</div></div>
+          </div>
+          <div style="height:5px;background:#1a2744;border-radius:3px;margin-bottom:12px"><div style="height:100%;border-radius:3px;background:${x.fuel<30?'#ef4444':x.fuel<50?'#f59e0b':'#22c55e'};width:${x.fuel||0}%"></div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="vehicleForm(${x.id})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('vehicles',${x.id},'ce véhicule')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('') || '<div class="card" style="grid-column:1/-1;text-align:center;color:#94a3b8;padding:40px">Aucun véhicule</div>'}
+    </div>`;
+}
+
+function vehicleForm(id) {
+  const v = id ? state.vehicles.find(x=>x.id==id) : {};
+  const types = ['Camion Semi','Camion Benne','Frigorifique','Tracteur Routier','Plateau','Fourgon','Camionnette'];
+  const statuses = ['disponible','en_route','maintenance'];
+  openModal(id?'Modifier véhicule':'Nouveau véhicule', `
+    <div class="form-grid">
+      <div class="form-field"><label>Plaque *</label><input id="f_plate" value="${v.plate||''}"></div>
+      <div class="form-field"><label>Modèle *</label><input id="f_model" value="${v.model||''}"></div>
+      <div class="form-field"><label>Type</label><select id="f_type">${types.map(t=>`<option ${v.type==t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Statut</label><select id="f_status">${statuses.map(s=>`<option value="${s}" ${v.status==s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Kilométrage</label><input type="number" id="f_km" value="${v.km||0}"></div>
+      <div class="form-field"><label>Carburant (%)</label><input type="number" id="f_fuel" value="${v.fuel||100}"></div>
+      <div class="form-field"><label>Année</label><input type="number" id="f_year" value="${v.year||2020}"></div>
+      <div class="form-field"><label>Couleur</label><input id="f_color" value="${v.color||''}"></div>
+      <div class="form-field"><label>Assurance (exp.)</label><input type="date" id="f_insurance" value="${v.insurance||''}"></div>
+      <div class="form-field"><label>Maintenance (proch.)</label><input type="date" id="f_maintenance" value="${v.maintenance||''}"></div>
+      <div class="form-field"><label>Vignette (exp.)</label><input type="date" id="f_vignette" value="${v.vignette||''}"></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveVehicle(${id||0})">${id?'Enregistrer':'Ajouter'}</button>`
+  );
+}
+
+async function saveVehicle(id) {
+  const data = {
+    plate: document.getElementById('f_plate').value,
+    model: document.getElementById('f_model').value,
+    type: document.getElementById('f_type').value,
+    status: document.getElementById('f_status').value,
+    km: +document.getElementById('f_km').value,
+    fuel: +document.getElementById('f_fuel').value,
+    year: +document.getElementById('f_year').value,
+    color: document.getElementById('f_color').value,
+    insurance: document.getElementById('f_insurance').value,
+    maintenance: document.getElementById('f_maintenance').value,
+    vignette: document.getElementById('f_vignette').value,
+  };
+  if(!data.plate||!data.model){toast('Plaque et modèle requis','error');return;}
+  try {
+    if(id) await api('PUT','/api/vehicles/'+id,data);
+    else await api('POST','/api/vehicles',data);
+    closeModal(); await loadAll(); renderPage('vehicles'); toast('Véhicule sauvegardé','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+// ─── DRIVERS ──────────────────────────────────────────────────────────────────
+function renderDrivers(el) {
+  const d = state.drivers || [];
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Gestion des chauffeurs</div><div class="page-sub">${d.length} chauffeur(s)</div></div>
+      <button class="btn btn-orange" onclick="driverForm()">+ Ajouter</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${d.map(x=>`<div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">${x.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-size:15px;font-weight:800">${x.name}</span>${badge(x.status)}
+              <span style="padding:2px 8px;border-radius:6px;background:#3b82f615;color:#3b82f6;font-size:11px;font-weight:700">Permis ${x.license}</span>
+            </div>
+            <div style="font-size:12px;color:#94a3b8">${x.phone||''} · ${x.city||''}</div>
+          </div>
+          <div style="display:flex;gap:16px;text-align:center">
+            <div><div style="font-size:18px;font-weight:800;color:#f97316">${x.missions||0}</div><div style="font-size:11px;color:#94a3b8">Missions</div></div>
+            <div><div style="font-size:16px;font-weight:800;color:#22c55e">${Number(x.salary||0).toLocaleString()}</div><div style="font-size:11px;color:#94a3b8">MAD/mois</div></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="driverForm(${x.id})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('drivers',${x.id},'ce chauffeur')">Suppr.</button>
+          </div>
+        </div>
+      </div>`).join('') || '<div class="card" style="text-align:center;color:#94a3b8;padding:40px">Aucun chauffeur</div>'}
+    </div>`;
+}
+
+function driverForm(id) {
+  const d = id ? state.drivers.find(x=>x.id==id) : {};
+  openModal(id?'Modifier chauffeur':'Nouveau chauffeur', `
+    <div class="form-grid">
+      <div class="form-field"><label>Nom complet *</label><input id="f_name" value="${d.name||''}"></div>
+      <div class="form-field"><label>CIN</label><input id="f_cin" value="${d.cin||''}"></div>
+      <div class="form-field"><label>Téléphone *</label><input id="f_phone" value="${d.phone||''}"></div>
+      <div class="form-field"><label>Ville</label><input id="f_city" value="${d.city||''}"></div>
+      <div class="form-field"><label>Type permis</label><select id="f_license">${['B','C','CE','C+E','D','D+E'].map(l=>`<option ${d.license==l?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Salaire (MAD)</label><input type="number" id="f_salary" value="${d.salary||0}"></div>
+      <div class="form-field"><label>Date naissance</label><input type="date" id="f_dob" value="${d.dob||''}"></div>
+      <div class="form-field"><label>Date embauche</label><input type="date" id="f_hire" value="${d.hire||''}"></div>
+      <div class="form-field"><label>Statut</label><select id="f_dstatus">${['actif','conge','inactif'].map(s=>`<option value="${s}" ${d.status==s?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveDriver(${id||0})">${id?'Enregistrer':'Ajouter'}</button>`
+  );
+}
+
+async function saveDriver(id) {
+  const data = { name:document.getElementById('f_name').value, cin:document.getElementById('f_cin').value, phone:document.getElementById('f_phone').value, city:document.getElementById('f_city').value, license:document.getElementById('f_license').value, salary:+document.getElementById('f_salary').value, dob:document.getElementById('f_dob').value, hire:document.getElementById('f_hire').value, status:document.getElementById('f_dstatus').value };
+  if(!data.name){toast('Nom requis','error');return;}
+  try {
+    if(id) await api('PUT','/api/drivers/'+id,data);
+    else await api('POST','/api/drivers',data);
+    closeModal(); await loadAll(); renderPage('drivers'); toast('Chauffeur sauvegardé','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+// ─── MISSIONS ─────────────────────────────────────────────────────────────────
+function renderMissions(el) {
+  const m = state.missions || [];
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Gestion des missions</div><div class="page-sub">${m.length} mission(s)</div></div>
+      <button class="btn btn-orange" onclick="missionForm()">+ Nouvelle</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${m.map(x=>{
+        const drv = state.drivers.find(d=>d.id==x.driver_id);
+        const veh = state.vehicles.find(v=>v.id==x.vehicle_id);
+        return `<div class="card" style="padding:18px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <div style="display:flex;gap:14px;align-items:center">
+              <div><div style="font-size:15px;font-weight:800;color:#f97316">${x.id}</div><div style="font-size:11px;color:#94a3b8">${x.date||''}</div></div>
+              <div style="height:32px;width:1px;background:#1a2744"></div>
+              <div><div style="font-size:14px;font-weight:700">${x.client}</div><div style="font-size:12px;color:#94a3b8">${x.origin} → ${x.destination} · ${x.distance||0} km</div></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center"><span style="font-size:16px;font-weight:800;color:#f97316">${fmtMAD(x.amount)}</span>${badge(x.status)}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="padding:8px;background:#ffffff06;border-radius:8px"><div style="font-size:10px;color:#94a3b8">Chauffeur</div><div style="font-size:12px;font-weight:700">${drv?drv.name:'Non assigné'}</div></div>
+            <div style="padding:8px;background:#ffffff06;border-radius:8px"><div style="font-size:10px;color:#94a3b8">Véhicule</div><div style="font-size:12px;font-weight:700">${veh?veh.plate:'Non assigné'}</div></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="missionForm('${x.id}')">Modifier</button>
+            ${x.status==='planifie'?`<button class="btn btn-success btn-sm" onclick="updateMissionStatus('${x.id}','en_cours')">▶ Démarrer</button>`:''}
+            ${x.status==='en_cours'?`<button class="btn btn-success btn-sm" onclick="updateMissionStatus('${x.id}','termine')">✓ Terminer</button>`:''}
+            ${(x.status==='planifie'||x.status==='en_cours')?`<button class="btn btn-danger btn-sm" onclick="updateMissionStatus('${x.id}','annule')">Annuler</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('missions','${x.id}','cette mission')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('') || '<div class="card" style="text-align:center;color:#94a3b8;padding:40px">Aucune mission</div>'}
+    </div>`;
+}
+
+function missionForm(id) {
+  const m = id ? state.missions.find(x=>x.id==id) : {};
+  openModal(id?'Modifier mission':'Nouvelle mission', `
+    <div class="form-grid">
+      <div class="form-field"><label>Client *</label><input id="f_client" value="${m.client||''}"></div>
+      <div class="form-field"><label>Montant (MAD)</label><input type="number" id="f_amount" value="${m.amount||0}"></div>
+      <div class="form-field"><label>Départ *</label><input id="f_origin" value="${m.origin||''}"></div>
+      <div class="form-field"><label>Arrivée *</label><input id="f_dest" value="${m.destination||''}"></div>
+      <div class="form-field"><label>Distance (km)</label><input type="number" id="f_dist" value="${m.distance||0}"></div>
+      <div class="form-field"><label>Date</label><input type="date" id="f_date" value="${m.date||new Date().toISOString().split('T')[0]}"></div>
+      <div class="form-field"><label>Chauffeur</label><select id="f_driver"><option value="">Non assigné</option>${state.drivers.map(d=>`<option value="${d.id}" ${m.driver_id==d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Véhicule</label><select id="f_vehicle"><option value="">Non assigné</option>${state.vehicles.map(v=>`<option value="${v.id}" ${m.vehicle_id==v.id?'selected':''}>${v.plate} - ${v.model}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Statut</label><select id="f_mstatus">${['planifie','en_cours','termine','annule'].map(s=>`<option value="${s}" ${m.status==s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-field full-width"><label>Notes</label><textarea id="f_notes" rows="2">${m.notes||''}</textarea></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveMission('${id||''}')">${id?'Enregistrer':'Créer'}</button>`
+  );
+}
+
+async function saveMission(id) {
+  const data = { client:document.getElementById('f_client').value, amount:+document.getElementById('f_amount').value, origin:document.getElementById('f_origin').value, destination:document.getElementById('f_dest').value, distance:+document.getElementById('f_dist').value, date:document.getElementById('f_date').value, driver_id:document.getElementById('f_driver').value||null, vehicle_id:document.getElementById('f_vehicle').value||null, status:document.getElementById('f_mstatus').value, notes:document.getElementById('f_notes').value };
+  if(!data.client||!data.origin||!data.destination){toast('Client, départ et arrivée requis','error');return;}
+  try {
+    if(id) await api('PUT','/api/missions/'+id,data);
+    else await api('POST','/api/missions',data);
+    closeModal(); await loadAll(); renderPage('missions'); toast('Mission sauvegardée','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function updateMissionStatus(id, status) {
+  const m = state.missions.find(x=>x.id==id);
+  if(!m) return;
+  try { await api('PUT','/api/missions/'+id,{...m,status}); await loadAll(); renderPage('missions'); toast('Statut mis à jour','success'); } catch(e){toast(e.error||'Erreur','error');}
+}
+
+// ─── INVOICES ─────────────────────────────────────────────────────────────────
+function renderInvoices(el) {
+  const inv = state.invoices || [];
+  const paid = inv.filter(i=>i.status==='paye').reduce((a,i)=>a+Number(i.amount),0);
+  const pend = inv.filter(i=>i.status==='en_attente').reduce((a,i)=>a+Number(i.amount),0);
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Facturation</div><div class="page-sub">${inv.length} facture(s)</div></div>
+      <button class="btn btn-orange" onclick="invoiceForm()">+ Nouvelle</button>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid)}</div><div class="stat-label">Encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f59e0b18">⏳</div><div class="stat-value" style="color:#f59e0b">${fmtMAD(pend)}</div><div class="stat-label">En attente</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">📄</div><div class="stat-value" style="color:#3b82f6">${inv.length}</div><div class="stat-label">Total factures</div></div>
+    </div>
+    <div class="card">
+      ${inv.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#ffffff04;border-radius:10px;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:700;color:#f97316;width:120px">${x.id}</span>
+        <span style="font-size:13px;font-weight:600;flex:1">${x.client}</span>
+        <span style="font-size:14px;font-weight:800;width:130px;text-align:right">${fmtMAD(x.amount)}</span>
+        <div style="width:120px;display:flex;justify-content:center">${badge(x.status)}</div>
+        <div style="display:flex;gap:4px">
+          ${x.status!=='paye'?`<button class="btn btn-success btn-sm" onclick="markPaid('${x.id}')">Payé</button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="invoiceForm('${x.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('invoices','${x.id}','cette facture')">Suppr.</button>
+        </div>
+      </div>`).join('') || '<p style="color:#94a3b8;text-align:center;padding:40px">Aucune facture</p>'}
+    </div>`;
+}
+
+function invoiceForm(id) {
+  const inv = id ? state.invoices.find(x=>x.id==id) : {};
+  openModal(id?'Modifier facture':'Nouvelle facture', `
+    <div class="form-grid">
+      <div class="form-field"><label>Client *</label><input id="f_client" value="${inv.client||''}"></div>
+      <div class="form-field"><label>Montant (MAD) *</label><input type="number" id="f_amount" value="${inv.amount||0}"></div>
+      <div class="form-field"><label>Date émission</label><input type="date" id="f_date" value="${inv.date||new Date().toISOString().split('T')[0]}"></div>
+      <div class="form-field"><label>Date échéance</label><input type="date" id="f_due" value="${inv.due||''}"></div>
+      <div class="form-field"><label>Statut</label><select id="f_istatus">${['en_attente','paye','retard'].map(s=>`<option value="${s}" ${inv.status==s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Notes</label><input id="f_notes" value="${inv.notes||''}"></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveInvoice('${id||''}')">${id?'Enregistrer':'Créer'}</button>`
+  );
+}
+
+async function saveInvoice(id) {
+  const data = { client:document.getElementById('f_client').value, amount:+document.getElementById('f_amount').value, date:document.getElementById('f_date').value, due:document.getElementById('f_due').value, status:document.getElementById('f_istatus').value, notes:document.getElementById('f_notes').value };
+  if(!data.client||!data.amount){toast('Client et montant requis','error');return;}
+  try {
+    if(id) await api('PUT','/api/invoices/'+id,data);
+    else await api('POST','/api/invoices',data);
+    closeModal(); await loadAll(); renderPage('invoices'); toast('Facture sauvegardée','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function markPaid(id) {
+  const inv = state.invoices.find(x=>x.id==id);
+  if(!inv) return;
+  try { await api('PUT','/api/invoices/'+id,{...inv,status:'paye'}); await loadAll(); renderPage('invoices'); toast('Facture marquée payée','success'); } catch(e){}
+}
+
+// ─── FUEL ─────────────────────────────────────────────────────────────────────
+function renderFuel(el) {
+  const f = state.fuels || [];
+  const totalL = f.reduce((a,x)=>a+Number(x.litres||0),0);
+  const totalC = f.reduce((a,x)=>a+Number(x.litres||0)*Number(x.price_per_l||14.5),0);
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Gestion du carburant</div><div class="page-sub">${f.length} plein(s)</div></div>
+      <button class="btn btn-orange" onclick="fuelForm()">+ Nouveau plein</button>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">⛽</div><div class="stat-value" style="color:#f97316">${Number(totalL.toFixed(0)).toLocaleString()} L</div><div class="stat-label">Total litres</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">💰</div><div class="stat-value" style="color:#3b82f6">${fmtMAD(Math.round(totalC))}</div><div class="stat-label">Coût total</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">📊</div><div class="stat-value" style="color:#22c55e">${f.length?((totalC/totalL)||0).toFixed(2):0} MAD</div><div class="stat-label">Prix moy./L</div></div>
+    </div>
+    <div class="card">
+      ${f.map(x=>{
+        const v=state.vehicles.find(vv=>vv.id==x.vehicle_id);
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#ffffff04;border-radius:10px;margin-bottom:6px">
+          <div style="flex:1.5"><div style="font-size:13px;font-weight:700">${v?v.plate:'—'}</div><div style="font-size:11px;color:#94a3b8">${v?v.model:''}</div></div>
+          <span style="flex:1;font-size:12px;color:#94a3b8">${x.date||''}</span>
+          <span style="flex:0.8;font-size:14px;font-weight:800;color:#f97316">${x.litres||0} L</span>
+          <span style="flex:0.8;font-size:12px;color:#94a3b8">${x.price_per_l||14.5} MAD/L</span>
+          <span style="flex:1;font-size:13px;font-weight:700">${fmtMAD(Math.round(Number(x.litres||0)*Number(x.price_per_l||14.5)))}</span>
+          <span style="flex:1;font-size:12px;color:#94a3b8">${x.station||'—'}</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-ghost btn-sm" onclick="fuelForm(${x.id})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('fuels',${x.id},'ce plein')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('') || '<p style="color:#94a3b8;text-align:center;padding:40px">Aucun plein</p>'}
+    </div>`;
+}
+
+function fuelForm(id) {
+  const f = id ? state.fuels.find(x=>x.id==id) : {};
+  openModal(id?'Modifier plein':'Nouveau plein', `
+    <div class="form-grid">
+      <div class="form-field"><label>Véhicule *</label><select id="f_vid"><option value="">Choisir</option>${state.vehicles.map(v=>`<option value="${v.id}" ${f.vehicle_id==v.id?'selected':''}>${v.plate} - ${v.model}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Date</label><input type="date" id="f_date" value="${f.date||new Date().toISOString().split('T')[0]}"></div>
+      <div class="form-field"><label>Litres *</label><input type="number" id="f_litres" value="${f.litres||0}"></div>
+      <div class="form-field"><label>Prix/L (MAD)</label><input type="number" step="0.1" id="f_ppl" value="${f.price_per_l||14.5}"></div>
+      <div class="form-field"><label>Kilométrage</label><input type="number" id="f_km" value="${f.km||0}"></div>
+      <div class="form-field"><label>Station</label><input id="f_station" value="${f.station||''}"></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveFuel(${id||0})">${id?'Enregistrer':'Ajouter'}</button>`
+  );
+}
+
+async function saveFuel(id) {
+  const data = { vehicle_id:document.getElementById('f_vid').value, date:document.getElementById('f_date').value, litres:+document.getElementById('f_litres').value, price_per_l:+document.getElementById('f_ppl').value, km:+document.getElementById('f_km').value, station:document.getElementById('f_station').value };
+  if(!data.vehicle_id||!data.litres){toast('Véhicule et litres requis','error');return;}
+  try {
+    if(id) await api('PUT','/api/fuels/'+id,data);
+    else await api('POST','/api/fuels',data);
+    closeModal(); await loadAll(); renderPage('fuel'); toast('Plein sauvegardé','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+// ─── MAINTENANCE ──────────────────────────────────────────────────────────────
+function renderMaintenance(el) {
+  const m = state.maintenances || [];
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Maintenance préventive</div><div class="page-sub">${m.length} intervention(s)</div></div>
+      <button class="btn btn-orange" onclick="maintenanceForm()">+ Planifier</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${m.map(x=>{
+        const v=state.vehicles.find(vv=>vv.id==x.vehicle_id);
+        const colors={planifie:'#3b82f6',urgent:'#ef4444',en_cours:'#f97316',termine:'#22c55e'};
+        const c=colors[x.status]||'#64748b';
+        return `<div class="card" style="border-left:4px solid ${c};padding:18px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="width:44px;height:44px;border-radius:12px;background:${c}18;display:flex;align-items:center;justify-content:center;font-size:20px">🔧</div>
+              <div><div style="font-size:15px;font-weight:800">${x.type}</div><div style="font-size:12px;color:#94a3b8">${v?v.plate:'-'} · ${x.date||''}</div></div>
+            </div>
+            <div style="text-align:right"><div style="font-size:16px;font-weight:800;color:#f97316">${fmtMAD(x.cost||0)}</div>${badge(x.status)}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${x.status==='planifie'?`<button class="btn btn-success btn-sm" onclick="updateMaintenanceStatus(${x.id},'en_cours')">▶ Démarrer</button>`:''}
+            ${x.status==='en_cours'?`<button class="btn btn-success btn-sm" onclick="updateMaintenanceStatus(${x.id},'termine')">✓ Terminer</button>`:''}
+            <button class="btn btn-ghost btn-sm" onclick="maintenanceForm(${x.id})">Modifier</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('maintenances',${x.id},'cette maintenance')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('') || '<div class="card" style="text-align:center;color:#94a3b8;padding:40px">Aucune maintenance</div>'}
+    </div>`;
+}
+
+function maintenanceForm(id) {
+  const m = id ? state.maintenances.find(x=>x.id==id) : {};
+  const types=['Vidange','Freins','Pneus','Filtres','Courroie','Batterie','Révision','Carrosserie','Autre'];
+  openModal(id?'Modifier maintenance':'Planifier maintenance', `
+    <div class="form-grid">
+      <div class="form-field"><label>Véhicule</label><select id="f_vid"><option value="">Choisir</option>${state.vehicles.map(v=>`<option value="${v.id}" ${m.vehicle_id==v.id?'selected':''}>${v.plate}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Type</label><select id="f_type">${types.map(t=>`<option ${m.type==t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Date</label><input type="date" id="f_date" value="${m.date||''}"></div>
+      <div class="form-field"><label>Kilométrage</label><input type="number" id="f_km" value="${m.km||0}"></div>
+      <div class="form-field"><label>Coût (MAD)</label><input type="number" id="f_cost" value="${m.cost||0}"></div>
+      <div class="form-field"><label>Technicien</label><input id="f_tech" value="${m.technicien||''}"></div>
+      <div class="form-field full-width"><label>Notes</label><textarea id="f_notes" rows="2">${m.notes||''}</textarea></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveMaintenance(${id||0})">${id?'Enregistrer':'Planifier'}</button>`
+  );
+}
+
+async function saveMaintenance(id) {
+  const data = { vehicle_id:document.getElementById('f_vid').value||null, type:document.getElementById('f_type').value, date:document.getElementById('f_date').value, km:+document.getElementById('f_km').value, cost:+document.getElementById('f_cost').value, technicien:document.getElementById('f_tech').value, notes:document.getElementById('f_notes').value, status:id?(state.maintenances.find(x=>x.id==id)||{}).status||'planifie':'planifie' };
+  try {
+    if(id) await api('PUT','/api/maintenances/'+id,data);
+    else await api('POST','/api/maintenances',data);
+    closeModal(); await loadAll(); renderPage('maintenance'); toast('Maintenance sauvegardée','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function updateMaintenanceStatus(id, status) {
+  const m = state.maintenances.find(x=>x.id==id);
+  if(!m) return;
+  try { await api('PUT','/api/maintenances/'+id,{...m,status}); await loadAll(); renderPage('maintenance'); toast('Statut mis à jour','success'); } catch(e){}
+}
+
+// ─── EXPENSES ─────────────────────────────────────────────────────────────────
+function renderExpenses(el) {
+  const exp = state.expenses || [];
+  const total = exp.reduce((a,x)=>a+Number(x.amount||0),0);
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Dépenses & Charges</div><div class="page-sub">${exp.length} dépense(s) · Total: ${fmtMAD(total)}</div></div>
+      <button class="btn btn-orange" onclick="expenseForm()">+ Ajouter</button>
+    </div>
+    <div class="card">
+      ${exp.map(x=>{
+        const v=state.vehicles.find(vv=>vv.id==x.vehicle_id);
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#ffffff04;border-radius:10px;margin-bottom:6px">
+          <div style="flex:2"><div style="font-size:13px;font-weight:700">${x.description||x.type}</div><div style="font-size:11px;color:#94a3b8">${v?v.plate:'—'} · ${x.date||''}</div></div>
+          <span style="padding:3px 8px;border-radius:6px;background:#3b82f618;color:#3b82f6;font-size:11px;font-weight:700">${x.type||'Autre'}</span>
+          <span style="font-size:15px;font-weight:800;color:#ef4444;width:120px;text-align:right">${fmtMAD(x.amount||0)}</span>
+          <span style="font-size:10px;color:${x.justif?'#22c55e':'#f59e0b'}">${x.justif?'✓ Justifié':'⚠ Sans justif.'}</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-ghost btn-sm" onclick="expenseForm(${x.id})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('expenses',${x.id},'cette dépense')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('') || '<p style="color:#94a3b8;text-align:center;padding:40px">Aucune dépense</p>'}
+    </div>`;
+}
+
+function expenseForm(id) {
+  const exp = id ? state.expenses.find(x=>x.id==id) : {};
+  const types=['Péage','Amende','Pneu','Réparation','Lavage','Parking','Autre'];
+  openModal(id?'Modifier dépense':'Nouvelle dépense', `
+    <div class="form-grid">
+      <div class="form-field"><label>Véhicule</label><select id="f_vid"><option value="">Choisir</option>${state.vehicles.map(v=>`<option value="${v.id}" ${exp.vehicle_id==v.id?'selected':''}>${v.plate}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Type</label><select id="f_type">${types.map(t=>`<option ${exp.type==t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="form-field"><label>Montant (MAD) *</label><input type="number" id="f_amount" value="${exp.amount||0}"></div>
+      <div class="form-field"><label>Date</label><input type="date" id="f_date" value="${exp.date||new Date().toISOString().split('T')[0]}"></div>
+      <div class="form-field full-width"><label>Description</label><input id="f_desc" value="${exp.description||''}"></div>
+      <div class="form-field"><label><input type="checkbox" id="f_justif" ${exp.justif?'checked':''}> Justificatif disponible</label></div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveExpense(${id||0})">${id?'Enregistrer':'Ajouter'}</button>`
+  );
+}
+
+async function saveExpense(id) {
+  const data = { vehicle_id:document.getElementById('f_vid').value||null, type:document.getElementById('f_type').value, amount:+document.getElementById('f_amount').value, date:document.getElementById('f_date').value, description:document.getElementById('f_desc').value, justif:document.getElementById('f_justif').checked };
+  try {
+    if(id) await api('PUT','/api/expenses/'+id,data);
+    else await api('POST','/api/expenses',data);
+    closeModal(); await loadAll(); renderPage('expenses'); toast('Dépense sauvegardée','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+// ─── ALERTS ───────────────────────────────────────────────────────────────────
+function renderAlerts(el) {
+  const a = state.alerts || [];
+  const unread = a.filter(x=>!x.read).length;
+  const colors = {urgent:'#ef4444',warning:'#f59e0b',info:'#3b82f6'};
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">Centre d'alertes</div><div class="page-sub">${unread} non lue(s)</div></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="markAllRead()">Tout marquer lu</button>
+        <button class="btn btn-orange" onclick="alertForm()">+ Nouvelle</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${a.map(x=>{
+        const c=colors[x.type]||'#64748b';
+        return `<div class="alert-card" style="border-left-color:${c};opacity:${x.read?0.6:1}">
+          <div class="alert-icon" style="background:${c}20">${x.type==='urgent'?'🔴':x.type==='warning'?'🟡':'🔵'}</div>
+          <div style="flex:1"><div style="font-size:14px;font-weight:700;margin-bottom:2px">${x.title}</div><div style="font-size:12px;color:#94a3b8">${x.desc||''}</div></div>
+          <div style="display:flex;gap:6px">
+            ${badge(x.type)}
+            ${!x.read?`<button class="btn btn-ghost btn-sm" onclick="markRead(${x.id})">Lu</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('alerts',${x.id},'cette alerte')">Suppr.</button>
+          </div>
+        </div>`;
+      }).join('') || '<div class="card" style="text-align:center;color:#94a3b8;padding:40px">Aucune alerte</div>'}
+    </div>`;
+}
+
+async function markRead(id) {
+  try { await api('PUT','/api/alerts/'+id,{}); await loadAll(); renderPage('alerts'); } catch(e){}
+}
+async function markAllRead() {
+  try { await api('PUT','/api/alerts',{}); await loadAll(); renderPage('alerts'); toast('Toutes marquées lues','success'); } catch(e){}
+}
+function alertForm() {
+  openModal('Nouvelle alerte', `
+    <div class="form-field" style="margin-bottom:14px"><label>Type</label><select id="f_atype"><option value="urgent">Urgent</option><option value="warning">Attention</option><option value="info" selected>Info</option></select></div>
+    <div class="form-field" style="margin-bottom:14px"><label>Titre *</label><input id="f_title" placeholder="Titre de l'alerte"></div>
+    <div class="form-field"><label>Description</label><textarea id="f_desc" rows="3" placeholder="Détails..."></textarea></div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveAlert()">Créer</button>`
+  );
+}
+async function saveAlert() {
+  const data = { type:document.getElementById('f_atype').value, title:document.getElementById('f_title').value, desc:document.getElementById('f_desc').value };
+  if(!data.title){toast('Titre requis','error');return;}
+  try { await api('POST','/api/alerts',data); closeModal(); await loadAll(); renderPage('alerts'); toast('Alerte créée','success'); } catch(e){toast(e.error||'Erreur','error');}
+}
+
+// ─── DELETE ───────────────────────────────────────────────────────────────────
+async function deleteItem(resource, id, label) {
+  confirm('Supprimer', `Voulez-vous vraiment supprimer ${label} ? Cette action est irréversible.`, async () => {
+    try {
+      await api('DELETE', `/api/${resource}/${id}`);
+      await loadAll();
+      renderPage(currentPage);
+      toast('Supprimé avec succès','success');
+    } catch(e){ toast(e.error||'Erreur','error'); }
+  });
+}
+
+// ─── SUPER ADMIN ──────────────────────────────────────────────────────────────
+async function renderSuperAdmin(el) {
+  if (currentAccount.role !== 'super') { el.innerHTML='<div class="card" style="text-align:center;color:#ef4444;padding:40px">Accès refusé</div>'; return; }
+  let accounts = [], stats = {};
+  try {
+    [accounts, stats] = await Promise.all([api('GET','/api/admin/accounts'), api('GET','/api/admin/stats')]);
+  } catch(e){}
+
+  el.innerHTML = `
+    <div class="page-header">
+      <div><div class="page-title">👑 Super Admin</div><div class="page-sub">Gestion des comptes clients</div></div>
+      <button class="btn btn-orange" onclick="createAccountForm()">+ Créer un compte</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+      <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">👥</div><div class="stat-value" style="color:#3b82f6">${stats.total||0}</div><div class="stat-label">Total clients</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${stats.active||0}</div><div class="stat-label">Actifs</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#ef444418">⚠️</div><div class="stat-value" style="color:#ef4444">${stats.expired||0}</div><div class="stat-label">Expirés</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(stats.totalRevenue||0)}</div><div class="stat-label">CA estimé</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      ${[['30 Jours','month','499 MAD',stats.revenue30||0,'#3b82f6'],['1 An','year','4 990 MAD',stats.revenueYear||0,'#f97316'],['À Vie','life','19 999 MAD',stats.revenueLife||0,'#22c55e']].map(([l,p,pr,c,col])=>`
+        <div style="padding:16px;background:#0d1829;border:1px solid #1a2744;border-radius:12px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:${col}">${c}</div>
+          <div style="font-size:13px;color:#94a3b8">${l} · ${pr}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:16px">Comptes clients (${accounts.filter(a=>a.role!=='super').length})</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nom</th><th>Email</th><th>Entreprise</th><th>Plan</th><th>Expire le</th><th>Statut</th><th>Connexion</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${accounts.filter(a=>a.role!=='super').map(a=>{
+              const days = a.plan==='life' ? '∞' : Math.max(0,Math.ceil((new Date(a.expires_at)-new Date())/86400000))+'j';
+              const expired = a.plan!=='life' && a.expires_at && new Date(a.expires_at)<new Date();
+              return `<tr>
+                <td style="font-weight:700">${a.name}</td>
+                <td style="color:#94a3b8">${a.email}</td>
+                <td style="color:#94a3b8">${a.company||'—'}</td>
+                <td><span style="padding:3px 8px;border-radius:6px;background:${a.plan==='life'?'#22c55e18':a.plan==='year'?'#f9731618':'#3b82f618'};color:${a.plan==='life'?'#22c55e':a.plan==='year'?'#f97316':'#3b82f6'};font-size:11px;font-weight:700">${a.plan}</span></td>
+                <td style="color:${expired?'#ef4444':'#94a3b8'};font-size:12px">${a.expires_at?.split('T')[0]||'—'} (${days})</td>
+                <td>${badge(a.status)}</td>
+                <td style="font-size:11px;color:#475569">${a.last_login?a.last_login.slice(0,16):'Jamais'}</td>
+                <td>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap">
+                    <button class="btn btn-ghost btn-sm" onclick="editAccountForm(${a.id})">Modifier</button>
+                    <button class="btn btn-success btn-sm" onclick="extendAccount(${a.id},a.name)">+30j</button>
+                    <button class="btn btn-danger btn-sm" onclick="toggleAccount(${a.id},'${a.status}')">
+                      ${a.status==='active'?'Suspendre':'Activer'}
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteAccount(${a.id})">Suppr.</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('') || '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:30px">Aucun client</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function createAccountForm() {
+  openModal('Créer un compte client', `
+    <div class="form-grid">
+      <div class="form-field"><label>Nom complet *</label><input id="a_name" placeholder="Mohammed Alami"></div>
+      <div class="form-field"><label>Email *</label><input type="email" id="a_email" placeholder="client@email.ma"></div>
+      <div class="form-field"><label>Mot de passe *</label><input type="password" id="a_pass" placeholder="Minimum 6 caractères"></div>
+      <div class="form-field"><label>Entreprise</label><input id="a_company" placeholder="Transport Alami"></div>
+      <div class="form-field"><label>Téléphone</label><input id="a_phone" placeholder="0661234567"></div>
+      <div class="form-field"><label>Plan</label>
+        <select id="a_plan">
+          <option value="month">30 Jours — 499 MAD</option>
+          <option value="year">1 An — 4 990 MAD</option>
+          <option value="life">À Vie — 19 999 MAD</option>
+        </select>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="saveNewAccount()">Créer le compte</button>`
+  );
+}
+
+async function saveNewAccount() {
+  const data = { name:document.getElementById('a_name').value, email:document.getElementById('a_email').value, password:document.getElementById('a_pass').value, company:document.getElementById('a_company').value, phone:document.getElementById('a_phone').value, plan:document.getElementById('a_plan').value };
+  if(!data.name||!data.email||!data.password){toast('Nom, email et mot de passe requis','error');return;}
+  if(data.password.length<6){toast('Mot de passe trop court (min 6 car.)','error');return;}
+  try {
+    await api('POST','/api/admin/accounts',data);
+    closeModal(); renderPage('superadmin');
+    toast(`Compte créé pour ${data.name} ✓`,'success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function editAccountForm(id) {
+  let accounts = [];
+  try { accounts = await api('GET','/api/admin/accounts'); } catch(e){}
+  const a = accounts.find(x=>x.id==id);
+  if(!a) return;
+  openModal('Modifier le compte', `
+    <div class="form-grid">
+      <div class="form-field"><label>Nom</label><input id="a_name" value="${a.name}"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="a_email" value="${a.email}"></div>
+      <div class="form-field"><label>Nouveau MDP (laisser vide = inchangé)</label><input type="password" id="a_pass" placeholder="Nouveau mot de passe"></div>
+      <div class="form-field"><label>Entreprise</label><input id="a_company" value="${a.company||''}"></div>
+      <div class="form-field"><label>Téléphone</label><input id="a_phone" value="${a.phone||''}"></div>
+      <div class="form-field"><label>Plan</label>
+        <select id="a_plan">
+          <option value="month" ${a.plan==='month'?'selected':''}>30 Jours</option>
+          <option value="year" ${a.plan==='year'?'selected':''}>1 An</option>
+          <option value="life" ${a.plan==='life'?'selected':''}>À Vie</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Statut</label>
+        <select id="a_status">
+          <option value="active" ${a.status==='active'?'selected':''}>Actif</option>
+          <option value="suspended" ${a.status==='suspended'?'selected':''}>Suspendu</option>
+        </select>
+      </div>
+    </div>`,
+    `<button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+     <button class="btn btn-orange" onclick="updateAccount(${id})">Enregistrer</button>`
+  );
+}
+
+async function updateAccount(id) {
+  const data = { name:document.getElementById('a_name').value, email:document.getElementById('a_email').value, company:document.getElementById('a_company').value, phone:document.getElementById('a_phone').value, plan:document.getElementById('a_plan').value, status:document.getElementById('a_status').value };
+  const pass = document.getElementById('a_pass').value;
+  if(pass) data.newPassword = pass;
+  try {
+    await api('PUT','/api/admin/accounts/'+id,data);
+    closeModal(); renderPage('superadmin'); toast('Compte mis à jour','success');
+  } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function extendAccount(id) {
+  try { await api('POST','/api/admin/accounts/'+id+'/extend',{days:30}); renderPage('superadmin'); toast('+30 jours ajoutés','success'); } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function toggleAccount(id, status) {
+  const newStatus = status==='active'?'suspended':'active';
+  try { await api('PUT','/api/admin/accounts/'+id,{status:newStatus}); renderPage('superadmin'); toast(newStatus==='active'?'Compte activé':'Compte suspendu','success'); } catch(e){toast(e.error||'Erreur','error');}
+}
+
+async function deleteAccount(id) {
+  confirm('Supprimer le compte', 'Toutes les données de ce client seront supprimées définitivement. Confirmer ?', async () => {
+    try { await api('DELETE','/api/admin/accounts/'+id); renderPage('superadmin'); toast('Compte supprimé','success'); } catch(e){toast(e.error||'Erreur','error');}
+  });
+}
+
+// ─── AUTO LOGIN ───────────────────────────────────────────────────────────────
+window.onload = async () => {
+  if (token) {
+    try {
+      currentAccount = await api('GET','/api/me');
+      initApp();
+    } catch(e) {
+      localStorage.removeItem('gfm_token');
+      token = null;
+    }
+  }
+};
+
+// Enter key on login
+document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
