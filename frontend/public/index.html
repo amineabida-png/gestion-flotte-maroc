@@ -2,15 +2,22 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#060d1a">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Gestion Flotte Maroc</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#060d1a;color:#f1f5f9;font-family:'Segoe UI',sans-serif;min-height:100vh}
+body{background:#060d1a;color:#f1f5f9;font-family:'Segoe UI',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font-size:16px!important}/* Prevent iOS zoom on focus */
+button{touch-action:manipulation}
+.table-wrap{-webkit-overflow-scrolling:touch}
 .hidden{display:none!important}
 
 /* LOGIN */
-#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#060d1a,#0a1628)}
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:linear-gradient(135deg,#060d1a,#0a1628);overflow-y:auto}
 .login-box{background:#0d1829;border:1px solid #1a2744;border-radius:20px;padding:40px;width:100%;max-width:420px}
 .logo{text-align:center;margin-bottom:28px}
 .logo-icon{width:60px;height:60px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;margin:0 auto 12px;color:#fff}
@@ -26,7 +33,7 @@ body{background:#060d1a;color:#f1f5f9;font-family:'Segoe UI',sans-serif;min-heig
 
 /* APP */
 #appPage{display:none;flex:1}
-.app-layout{display:flex;min-height:100vh}
+.app-layout{display:flex;min-height:100vh;min-height:-webkit-fill-available}
 
 /* SIDEBAR */
 .sidebar{width:240px;background:#080f1e;border-right:1px solid #1a2744;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
@@ -132,12 +139,108 @@ tr:hover td{background:#ffffff04}
 #confirmModal .modal{max-width:400px}
 
 /* RESPONSIVE */
+
+/* ── TABLET (768px) ── */
 @media(max-width:768px){
-  .sidebar{width:60px}
-  .sidebar-title,.sidebar-subtitle,.nav-item span:not(.icon),.user-name,.user-role,.nav-badge{display:none}
-  .main-content{margin-left:60px}
+  .sidebar{width:64px}
+  .sidebar-title,.sidebar-subtitle,.nav-item span:not(.icon),.user-name,.user-role,.license-badge{display:none}
+  .sidebar-header{padding:14px 0;justify-content:center}
+  .sidebar-logo{margin:0 auto}
+  .nav-item{justify-content:center;padding:10px 0;border-left:none;border-bottom:3px solid transparent}
+  .nav-item.active{border-left:none;border-bottom-color:#f97316}
+  .sidebar-footer{padding:8px 0;justify-content:center}
+  .user-avatar{margin:0 auto}
+  .main-content{margin-left:64px}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .form-grid{grid-template-columns:1fr}
+  .page{padding:16px}
+  .topbar{padding:0 12px}
+  .page-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .table-wrap{font-size:12px}
+  th,td{padding:8px 6px}
+}
+
+/* ── MOBILE (480px) ── */
+@media(max-width:480px){
+  /* Sidebar devient bottom nav sur mobile */
+  .sidebar{
+    width:100%;height:60px;flex-direction:row;
+    position:fixed;bottom:0;top:auto;left:0;right:0;
+    border-right:none;border-top:1px solid #1a2744;
+    z-index:200;overflow-x:auto;overflow-y:hidden
+  }
+  .sidebar-header,.sidebar-footer,.license-badge{display:none!important}
+  .sidebar-nav{
+    flex-direction:row;padding:0;
+    display:flex;align-items:center;
+    overflow-x:auto;gap:0;width:100%;
+    scrollbar-width:none
+  }
+  .sidebar-nav::-webkit-scrollbar{display:none}
+  .nav-item{
+    flex-direction:column;gap:2px;
+    min-width:60px;height:60px;
+    padding:6px 4px;border-radius:0;
+    border-left:none;border-bottom:none;
+    border-top:3px solid transparent;
+    font-size:9px;justify-content:center
+  }
+  .nav-item.active{border-top-color:#f97316;background:#f9731610}
+  .nav-item .icon{font-size:18px}
+  .main-content{margin-left:0;margin-bottom:60px;padding-bottom:10px}
+  .topbar{height:44px;padding:0 12px}
+  .topbar-title{font-size:11px}
+  .page{padding:12px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stat-card{padding:14px}
+  .stat-value{font-size:18px}
+  .stat-icon{width:36px;height:36px;font-size:16px;margin-bottom:8px}
+  .card{padding:14px;border-radius:12px}
+  .page-header{flex-direction:column;align-items:flex-start;gap:10px;margin-bottom:16px}
+  .page-title{font-size:18px}
+  .form-grid{grid-template-columns:1fr}
+  .modal{margin:10px;max-height:85vh}
+  .modal-body{padding:16px}
+  .modal-header{padding:14px 16px}
+  table{min-width:500px}
+  .btn{padding:8px 14px;font-size:12px}
+  .btn-sm{padding:5px 10px;font-size:10px}
+  /* Login page */
+  .login-box{padding:24px 20px;margin:16px}
+  /* Hide some topbar elements */
+  .badge-expire{display:none}
+  .btn-logout{font-size:10px;padding:4px 8px}
+  .btn-super{font-size:10px;padding:4px 8px}
+}
+
+/* ── SMALL MOBILE (360px) ── */
+@media(max-width:360px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat-card{padding:10px}
+  .page{padding:8px}
+  .nav-item{min-width:52px}
+}
+
+.resp-grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.resp-grid-1-2{display:grid;grid-template-columns:1fr 2fr;gap:16px}
+.resp-grid-1-1{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){
+  .resp-grid-2-1,.resp-grid-1-2,.resp-grid-1-1{grid-template-columns:1fr!important}
+}
+
+/* Touch improvements */
+@media(hover:none){
+  button:hover{transform:none!important;opacity:1!important}
+  .nav-item:hover{background:transparent}
+  .nav-item.active{background:#f9731615!important}
+}
+
+/* Safe area for iPhone notch */
+@supports(padding-bottom: env(safe-area-inset-bottom)){
+  @media(max-width:480px){
+    .sidebar{padding-bottom:env(safe-area-inset-bottom)}
+    .main-content{margin-bottom:calc(60px + env(safe-area-inset-bottom))}
+  }
 }
 </style>
 </head>
