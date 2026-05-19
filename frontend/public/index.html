@@ -163,6 +163,17 @@ tr:hover td{background:#ffffff04}
     </div>
     <button class="btn-primary" onclick="doLogin()">Se connecter</button>
     <div class="error-msg" id="loginError"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+      <div style="flex:1;height:1px;background:#1a2744"></div>
+      <span style="font-size:11px;color:#475569;font-weight:600">OU</span>
+      <div style="flex:1;height:1px;background:#1a2744"></div>
+    </div>
+    <button onclick="startTrial()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #f9731640;background:#f9731610;color:#f97316;font-weight:700;font-size:14px;cursor:pointer">
+      🚀 Essai gratuit 48h — Sans inscription
+    </button>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:#475569">
+      ✓ Accès complet · ✓ Sans carte bancaire · ✓ 19 modules
+    </div>
   </div>
 </div>
 
@@ -279,6 +290,122 @@ function toast(msg, type='info') {
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
+function startTrial() {
+  // Créer un compte démo local avec expiry 48h
+  const expiry = new Date();
+  expiry.setHours(expiry.getHours() + 48);
+  const trialAccount = {
+    id: 'trial_' + Date.now(),
+    name: 'Compte Essai',
+    email: 'essai@demo.ma',
+    role: 'client',
+    company: 'Essai Gratuit 48h',
+    plan: 'trial',
+    expires_at: expiry.toISOString(),
+    status: 'active',
+    isTrial: true,
+  };
+  // Stocker en localStorage pour le mode démo
+  localStorage.setItem('gfm_trial', JSON.stringify(trialAccount));
+  currentAccount = trialAccount;
+  token = 'trial_token';
+  localStorage.setItem('gfm_token', token);
+  initTrialApp();
+}
+
+function initTrialApp() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('appPage').style.display = 'flex';
+
+  const btnSA = document.getElementById('btnSuperAdmin');
+  if(btnSA) { btnSA.classList.add('hidden'); btnSA.style.display='none'; }
+  document.getElementById('sidebarNav').innerHTML = '';
+
+  const name = currentAccount.name;
+  document.getElementById('userAvatar').textContent = 'ES';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userRoleLabel').textContent = 'Compte Essai 48h';
+
+  const expiry = new Date(currentAccount.expires_at);
+  const hoursLeft = Math.max(0, Math.ceil((expiry - new Date()) / 3600000));
+  const lic = document.getElementById('licenseBadge');
+  lic.textContent = '⏱ ' + hoursLeft + 'h restantes';
+  lic.style.cssText = 'background:#f9731620;color:#f97316;border:1px solid #f9731640';
+
+  // Show expire badge
+  if(hoursLeft <= 12) {
+    document.getElementById('expireBadge').textContent = '⚠ Essai expire dans ' + hoursLeft + 'h';
+    document.getElementById('expireBadge').classList.remove('hidden');
+  }
+
+  buildSidebar();
+
+  // Use demo data
+  state = {
+    vehicles: [
+      {id:1,plate:'12345-A-1',model:'Mercedes Actros',type:'Camion Semi',km:185000,fuel:72,status:'disponible',insurance:'2026-09-01',maintenance:'2026-06-15',vignette:'2026-12-31'},
+      {id:2,plate:'67890-B-2',model:'Volvo FH 500',type:'Tracteur Routier',km:241000,fuel:45,status:'en_route',insurance:'2026-11-30',maintenance:'2026-07-01',vignette:'2026-12-31'},
+      {id:3,plate:'11111-C-3',model:'MAN TGX',type:'Camion Benne',km:312000,fuel:30,status:'maintenance',insurance:'2026-08-15',maintenance:'2026-05-25',vignette:'2026-12-31'},
+    ],
+    drivers: [
+      {id:1,name:'Khalid Benali',cin:'AB123456',phone:'0661234567',license:'C+E',city:'Casablanca',salary:4500,status:'actif',missions:24,rating:4.8},
+      {id:2,name:'Ahmed Saidi',cin:'CD789012',phone:'0662345678',license:'CE',city:'Rabat',salary:4200,status:'actif',missions:18,rating:4.5},
+    ],
+    missions: [
+      {id:'MSN-001',client:'Ciments du Maroc',origin:'Casablanca',destination:'Marrakech',driver_id:1,vehicle_id:1,status:'en_cours',date:'2026-05-19',distance:243,amount:3500},
+      {id:'MSN-002',client:'OCP Groupe',origin:'Khouribga',destination:'Safi',driver_id:2,vehicle_id:2,status:'planifie',date:'2026-05-20',distance:155,amount:2800},
+    ],
+    invoices: [
+      {id:'FAC-001',client:'Ciments du Maroc',amount:42000,status:'paye',date:'2026-05-01',due:'2026-05-15'},
+      {id:'FAC-002',client:'OCP Groupe',amount:38500,status:'en_attente',date:'2026-05-10',due:'2026-06-10'},
+    ],
+    fuels: [
+      {id:1,vehicle_id:1,date:'2026-05-18',litres:320,price_per_l:14.50,station:'Shell Casablanca',km:184800},
+      {id:2,vehicle_id:2,date:'2026-05-17',litres:280,price_per_l:14.50,station:'Total Rabat',km:240700},
+    ],
+    expenses: [
+      {id:1,vehicle_id:1,type:'Péage',amount:450,date:'2026-05-18',description:'Autoroute Casa-Marrakech A/R',justif:1},
+      {id:2,vehicle_id:2,type:'Amende',amount:700,date:'2026-05-16',description:'Excès de vitesse RN7',justif:0},
+    ],
+    maintenances: [
+      {id:1,vehicle_id:1,type:'Vidange',date:'2026-06-15',km:190000,cost:850,status:'planifie',notes:'Huile 10W40',technicien:'Garage Auto Plus'},
+      {id:2,vehicle_id:3,type:'Freins',date:'2026-05-25',km:313000,cost:2400,status:'urgent',notes:'Remplacement plaquettes',technicien:'TechAuto Fes'},
+    ],
+    leaves: [],
+    alerts: [
+      {id:1,type:'urgent',title:'Assurance expire bientôt',desc:'Véhicule 11111-C-3 — assurance expire dans 87 jours',read:0},
+      {id:2,type:'warning',title:'Maintenance prévue',desc:'Véhicule 67890-B-2 — maintenance dans 43 jours',read:0},
+      {id:3,type:'info',title:'Bienvenue sur Gestion Flotte Maroc',desc:'Vous êtes en mode essai 48h. Toutes les fonctionnalités sont disponibles.',read:0},
+    ],
+  };
+
+  showPage('dashboard');
+}
+
+// Override api for trial mode
+const _realApi = api;
+async function apiOrTrial(method, url, body) {
+  if(currentAccount?.isTrial) {
+    // For trial, simulate API calls with local state
+    return simulateApi(method, url, body);
+  }
+  return _realApi(method, url, body);
+}
+
+function simulateApi(method, url, body) {
+  // Return mock stats for dashboard
+  if(url === '/api/stats') return Promise.resolve({
+    vehicles: state.vehicles.length,
+    drivers: state.drivers.length,
+    missions: state.missions.length,
+    activeMissions: state.missions.filter(m=>m.status==='en_cours').length,
+    revenue: state.invoices.filter(i=>i.status==='paye').reduce((a,i)=>a+Number(i.amount),0),
+    pending: state.invoices.filter(i=>i.status==='en_attente').reduce((a,i)=>a+Number(i.amount),0),
+    unreadAlerts: state.alerts.filter(a=>!a.read).length,
+  });
+  return Promise.resolve({});
+}
+
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -300,10 +427,18 @@ document.addEventListener('keydown', e => { if(e.key==='Enter' && document.getEl
 
 function doLogout() {
   localStorage.removeItem('gfm_token');
+  localStorage.removeItem('gfm_trial');
   token = null;
   currentAccount = null;
+  gpsConnected = false;
+  if(gpsInterval) clearInterval(gpsInterval);
+  if(window.gpsClock) clearInterval(window.gpsClock);
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('appPage').style.display = 'none';
+  // Clear error message
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
 }
 
 // ─── INIT APP ─────────────────────────────────────────────────────────────────
@@ -2060,6 +2195,22 @@ async function connectTraccar() {
 window.onload = async () => {
   if (token) {
     try {
+      // Check if trial mode
+      const trialData = localStorage.getItem('gfm_trial');
+      if(token === 'trial_token' && trialData) {
+        currentAccount = JSON.parse(trialData);
+        const expiry = new Date(currentAccount.expires_at);
+        if(expiry > new Date()) {
+          initTrialApp();
+          return;
+        } else {
+          // Trial expired
+          localStorage.removeItem('gfm_token');
+          localStorage.removeItem('gfm_trial');
+          token = null;
+          return;
+        }
+      }
       currentAccount = await api('GET','/api/me');
       await initApp();
       // Auto-reconnect Traccar if URL was saved
