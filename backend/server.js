@@ -195,10 +195,10 @@ db.exec(`
 // ─── CREATE SUPER ADMIN IF NOT EXISTS ────────────────────────────────────────
 const superExists = db.prepare("SELECT id FROM accounts WHERE role='super'").get();
 if (!superExists) {
-  const hash = bcrypt.hashSync('GFM2026@Admin', 10);
+  const hash = bcrypt.hashSync('NaqlPro2026@Admin', 10);
   db.prepare(`INSERT INTO accounts (name, email, password, role, company, plan, expires_at)
     VALUES (?, ?, ?, 'super', 'NaqlPro', 'life', '2099-12-31')`
-  ).run('Super Admin', 'admin@gfm.ma', hash);
+  ).run('Super Admin', 'admin@naqlpro.ma', hash);
   console.log('✅ Super Admin: admin@naqlpro.ma / NaqlPro2026@Admin');
 }
 
@@ -664,7 +664,7 @@ app.post('/api/admin/trial-requests/:id/approve', auth, superOnly, (req, res) =>
   }
 
   // Create account
-  const hash = require('bcryptjs').hashSync(password || 'GFM2026!', 10);
+  const hash = require('bcryptjs').hashSync(password || 'NaqlPro2026!', 10);
   const days = plan==='life' ? 36500 : plan==='year' ? 365 : plan==='month' ? 30 : 48/24;
   const expiry = new Date();
   expiry.setDate(expiry.getDate() + days);
@@ -681,7 +681,7 @@ app.post('/api/admin/trial-requests/:id/approve', auth, superOnly, (req, res) =>
   db.prepare("UPDATE trial_requests SET status='approuve', treated_at=datetime('now'), treated_by=? WHERE id=?")
     .run(req.account.id, req.params.id);
 
-  res.json({ success: true, account_id: result.lastInsertRowid, email: req2.email, password: password||'GFM2026!' });
+  res.json({ success: true, account_id: result.lastInsertRowid, email: req2.email, password: password||'NaqlPro2026!' });
 });
 
 // Super admin - reject request

@@ -2380,7 +2380,7 @@ function renderGPS(el) {
 function gpsConfigForm() {
   const aid = currentAccount?.id || 'default';
   const url = localStorage.getItem('naqlpro_traccar_url_'+aid)||'https://traccar.up.railway.app';
-  const user = localStorage.getItem('naqlpro_traccar_user_'+aid)||'admin@gfm.ma';
+  const user = localStorage.getItem('naqlpro_traccar_user_'+aid)||'admin@naqlpro.ma';
   const pass = localStorage.getItem('naqlpro_traccar_pass_'+aid)||'';
   openModal('Configuration Traccar GPS', `
     <div style="padding:12px;background:#f9731610;border:1px solid #f9731630;border-radius:10px;margin-bottom:16px">
