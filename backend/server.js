@@ -624,6 +624,54 @@ app.get('/api/traccar/test', auth, (req, res) => traccarProxy('/api/server', req
 app.get('/api/traccar/devices', auth, (req, res) => traccarProxy('/api/devices', req, res));
 app.get('/api/traccar/positions', auth, (req, res) => traccarProxy('/api/positions', req, res));
 
+// Traccar command - coupure moteur
+app.post('/api/traccar/command', auth, async (req, res) => {
+  const { traccar_url, traccar_user, traccar_pass, device_id, command } = req.query;
+  if (!traccar_url || !device_id || !command) return res.status(400).json({ error: 'Paramètres manquants' });
+  try {
+    const base = traccar_url.replace(/\/$/, '');
+    const https = require('https');
+    const http = require('http');
+    const sessionUrl = new URL('/api/session', base);
+    const postData = 'email=' + encodeURIComponent(traccar_user||'') + '&password=' + encodeURIComponent(traccar_pass||'');
+    const client = sessionUrl.protocol === 'https:' ? https : http;
+    const cookie = await new Promise((resolve, reject) => {
+      const r = client.request({
+        hostname: sessionUrl.hostname,
+        port: sessionUrl.port || (sessionUrl.protocol === 'https:' ? 443 : 80),
+        path: '/api/session', method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(postData) },
+        timeout: 8000
+      }, (response) => {
+        let d = ''; response.on('data', c => d += c);
+        response.on('end', () => {
+          if (response.statusCode >= 400) return reject({ error: 'Auth Traccar échouée' });
+          resolve(response.headers['set-cookie']?.map(c => c.split(';')[0]).join('; ') || '');
+        });
+      });
+      r.on('error', e => reject({ error: e.message }));
+      r.write(postData); r.end();
+    });
+    const cmdBody = JSON.stringify({ deviceId: parseInt(device_id), type: command });
+    const cmdRes = await new Promise((resolve, reject) => {
+      const cr = client.request({
+        hostname: sessionUrl.hostname,
+        port: sessionUrl.port || (sessionUrl.protocol === 'https:' ? 443 : 80),
+        path: '/api/commands/send', method: 'POST',
+        headers: { 'Cookie': cookie, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(cmdBody) },
+        timeout: 8000
+      }, (response) => {
+        let d = ''; response.on('data', c => d += c);
+        response.on('end', () => resolve({ status: response.statusCode, data: d }));
+      });
+      cr.on('error', e => reject({ error: e.message }));
+      cr.write(cmdBody); cr.end();
+    });
+    if (cmdRes.status >= 400) return res.status(400).json({ error: 'Commande échouée — boitier doit supporter les relais (TK103B, GT06N Pro)' });
+    res.json({ success: true, message: command === 'engineStop' ? 'Moteur coupé ✓' : 'Moteur activé ✓' });
+  } catch(e) { res.status(500).json({ error: e.error || e.message }); }
+});
+
 // ─── TRIAL REQUESTS ──────────────────────────────────────────────────────────
 // Public route - no auth needed
 app.post('/api/trial-request', (req, res) => {

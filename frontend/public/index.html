@@ -2386,10 +2386,22 @@ function renderGPS(el) {
               <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0f1e35;font-size:11px">
                 <span style="color:#94a3b8">${l}</span><span style="font-weight:700">${val}</span>
               </div>`).join('')}
-          </div>`;
+          <div style="margin-top:10px;padding:10px;background:#ef444410;border:1px solid #ef444430;border-radius:8px">
+            <div style="font-size:11px;color:#ef4444;font-weight:700;margin-bottom:8px">⚡ Contrôle moteur — التحكم في المحرك</div>
+            <div style="display:flex;gap:8px">
+              <button onclick="cutEngine('${v.id}','${v.plate}',1)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#ef4444;color:white;font-weight:700;font-size:12px;cursor:pointer">
+                🔴 Couper moteur — قطع المحرك
+              </button>
+              <button onclick="cutEngine('${v.id}','${v.plate}',0)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#22c55e;color:white;font-weight:700;font-size:12px;cursor:pointer">
+                🟢 Activer moteur — تشغيل المحرك
+              </button>
+            </div>
+            <div style="font-size:10px;color:#f59e0b;margin-top:6px">⚠️ Utiliser uniquement à l'arrêt complet — للاستخدام عند التوقف فقط</div>
+          </div>
+          </div>\`;
         })() : ''}
       </div>
-    </div>`;
+    </div>\`;
 
   // Start clock
   if(window.gpsClock) clearInterval(window.gpsClock);
@@ -2497,6 +2509,46 @@ async function connectTraccar() {
     }
   } catch(e) {
     toast('Connexion echouee: '+(e.error||e.message||'Verifiez URL et identifiants'),'error');
+  }
+}
+
+// ─── CUT ENGINE ──────────────────────────────────────────────────────────────
+async function cutEngine(deviceId, plate, action) {
+  const aid = currentAccount?.id || 'default';
+  const traccarUrl = localStorage.getItem('naqlpro_traccar_url_'+aid);
+  const traccarUser = localStorage.getItem('naqlpro_traccar_user_'+aid);
+  const traccarPass = localStorage.getItem('naqlpro_traccar_pass_'+aid);
+
+  if(!traccarUrl || !gpsConnected) {
+    toast('Traccar non connecté — Configure GPS d'abord','error');
+    return;
+  }
+
+  const actionLabel = action===1 ? 'Couper' : 'Activer';
+  const warningMsg = action===1
+    ? '⚠️ ATTENTION: Assurez-vous que le véhicule '+plate+' est à l'arrêt complet avant de couper le moteur !
+
+Confirmer ?'
+    : 'Activer le moteur du véhicule '+plate+' ?
+
+Confirmer ?';
+
+  if(!confirm(warningMsg)) return;
+
+  try {
+    const params = new URLSearchParams({
+      traccar_url: traccarUrl,
+      traccar_user: traccarUser||'',
+      traccar_pass: traccarPass||'',
+      device_id: deviceId,
+      command: action===1 ? 'engineStop' : 'engineResume'
+    });
+    await api('POST', '/api/traccar/command?'+params, {});
+    toast((action===1 ? '🔴 Moteur coupé' : '🟢 Moteur activé')+' — '+plate,'success');
+  } catch(e) {
+    // Fallback: show SMS command
+    const smsCmd = action===1 ? 'Relay,1#' : 'Relay,0#';
+    toast('Envoyez ce SMS au boitier '+plate+': '+smsCmd,'info');
   }
 }
 
