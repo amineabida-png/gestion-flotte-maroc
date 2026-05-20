@@ -2387,21 +2387,17 @@ function renderGPS(el) {
                 <span style="color:#94a3b8">${l}</span><span style="font-weight:700">${val}</span>
               </div>`).join('')}
           <div style="margin-top:10px;padding:10px;background:#ef444410;border:1px solid #ef444430;border-radius:8px">
-            <div style="font-size:11px;color:#ef4444;font-weight:700;margin-bottom:8px">⚡ Contrôle moteur — التحكم في المحرك</div>
+            <div style="font-size:11px;color:#ef4444;font-weight:700;margin-bottom:8px">Controle moteur</div>
             <div style="display:flex;gap:8px">
-              <button onclick="cutEngine('${v.id}','${v.plate}',1)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#ef4444;color:white;font-weight:700;font-size:12px;cursor:pointer">
-                🔴 Couper moteur — قطع المحرك
-              </button>
-              <button onclick="cutEngine('${v.id}','${v.plate}',0)" style="flex:1;padding:8px;border-radius:8px;border:none;background:#22c55e;color:white;font-weight:700;font-size:12px;cursor:pointer">
-                🟢 Activer moteur — تشغيل المحرك
-              </button>
+              <button onclick="cutEngine('${v.id}','${v.plate}',1)" style="flex:1;padding:7px;border-radius:7px;border:none;background:#ef4444;color:white;font-weight:700;font-size:11px;cursor:pointer">Couper moteur</button>
+              <button onclick="cutEngine('${v.id}','${v.plate}',0)" style="flex:1;padding:7px;border-radius:7px;border:none;background:#22c55e;color:white;font-weight:700;font-size:11px;cursor:pointer">Activer moteur</button>
             </div>
-            <div style="font-size:10px;color:#f59e0b;margin-top:6px">⚠️ Utiliser uniquement à l'arrêt complet — للاستخدام عند التوقف فقط</div>
+            <div style="font-size:10px;color:#f59e0b;margin-top:5px">A utiliser uniquement a arret complet</div>
           </div>
-          </div>\`;
+          </div>`;
         })() : ''}
       </div>
-    </div>\`;
+    </div>`;
 
   // Start clock
   if(window.gpsClock) clearInterval(window.gpsClock);
@@ -2514,7 +2510,7 @@ async function connectTraccar() {
 
 // ─── CUT ENGINE ──────────────────────────────────────────────────────────────
 async function cutEngine(deviceId, plate, action) {
-  const aid = currentAccount?.id || 'default';
+  const aid = currentAccount ? currentAccount.id : 'default';
   const traccarUrl = localStorage.getItem('naqlpro_traccar_url_'+aid);
   const traccarUser = localStorage.getItem('naqlpro_traccar_user_'+aid);
   const traccarPass = localStorage.getItem('naqlpro_traccar_pass_'+aid);
@@ -2522,23 +2518,27 @@ async function cutEngine(deviceId, plate, action) {
     toast('Traccar non connecte','error');
     return;
   }
-  const msg = action===1
-    ? "Couper moteur de " + plate + " ? Vehicule doit etre a arret complet !"
-    : "Activer moteur de " + plate + " ?";
+  let msg;
+  if(action===1) {
+    msg = "Couper moteur de " + plate + " ? Vehicule doit etre a arret complet !";
+  } else {
+    msg = "Activer moteur de " + plate + " ?";
+  }
   if(!confirm(msg)) return;
   try {
     const params = new URLSearchParams({
       traccar_url: traccarUrl,
-      traccar_user: traccarUser||'',
-      traccar_pass: traccarPass||'',
+      traccar_user: traccarUser || '',
+      traccar_pass: traccarPass || '',
       device_id: deviceId,
       command: action===1 ? 'engineStop' : 'engineResume'
     });
     await api('POST', '/api/traccar/command?'+params, {});
-    toast((action===1 ? 'Moteur coupe' : 'Moteur active')+' '+plate,'success');
+    const label = action===1 ? 'Moteur coupe' : 'Moteur active';
+    toast(label + ' ' + plate, 'success');
   } catch(e) {
     const smsCmd = action===1 ? 'Relay,1#' : 'Relay,0#';
-    toast('SMS secours '+plate+': '+smsCmd,'info');
+    toast('SMS secours ' + plate + ': ' + smsCmd, 'info');
   }
 }
 
