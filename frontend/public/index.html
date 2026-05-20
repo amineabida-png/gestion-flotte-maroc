@@ -2520,18 +2520,18 @@ async function cutEngine(deviceId, plate, action) {
   const traccarPass = localStorage.getItem('naqlpro_traccar_pass_'+aid);
 
   if(!traccarUrl || !gpsConnected) {
-    toast('Traccar non connecté — Configure GPS d'abord','error');
+    toast('Traccar non connecte','error');
     return;
   }
 
   const actionLabel = action===1 ? 'Couper' : 'Activer';
   const warningMsg = action===1
-    ? '⚠️ ATTENTION: Assurez-vous que le véhicule '+plate+' est à l'arrêt complet avant de couper le moteur !
+    ? "ATTENTION: Vehicule " + plate + " doit etre a arret complet. Confirmer coupure ?"
 
-Confirmer ?'
-    : 'Activer le moteur du véhicule '+plate+' ?
 
-Confirmer ?';
+    : "Activer moteur " + plate + " ? Confirmer ?"
+  ;
+
 
   if(!confirm(warningMsg)) return;
 
