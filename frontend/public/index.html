@@ -2518,23 +2518,14 @@ async function cutEngine(deviceId, plate, action) {
   const traccarUrl = localStorage.getItem('naqlpro_traccar_url_'+aid);
   const traccarUser = localStorage.getItem('naqlpro_traccar_user_'+aid);
   const traccarPass = localStorage.getItem('naqlpro_traccar_pass_'+aid);
-
   if(!traccarUrl || !gpsConnected) {
     toast('Traccar non connecte','error');
     return;
   }
-
-  const actionLabel = action===1 ? 'Couper' : 'Activer';
-  const warningMsg = action===1
-    ? "ATTENTION: Vehicule " + plate + " doit etre a arret complet. Confirmer coupure ?"
-
-
-    : "Activer moteur " + plate + " ? Confirmer ?"
-  ;
-
-
-  if(!confirm(warningMsg)) return;
-
+  const msg = action===1
+    ? "Couper moteur de " + plate + " ? Vehicule doit etre a arret complet !"
+    : "Activer moteur de " + plate + " ?";
+  if(!confirm(msg)) return;
   try {
     const params = new URLSearchParams({
       traccar_url: traccarUrl,
@@ -2544,11 +2535,10 @@ async function cutEngine(deviceId, plate, action) {
       command: action===1 ? 'engineStop' : 'engineResume'
     });
     await api('POST', '/api/traccar/command?'+params, {});
-    toast((action===1 ? '🔴 Moteur coupé' : '🟢 Moteur activé')+' — '+plate,'success');
+    toast((action===1 ? 'Moteur coupe' : 'Moteur active')+' '+plate,'success');
   } catch(e) {
-    // Fallback: show SMS command
     const smsCmd = action===1 ? 'Relay,1#' : 'Relay,0#';
-    toast('Envoyez ce SMS au boitier '+plate+': '+smsCmd,'info');
+    toast('SMS secours '+plate+': '+smsCmd,'info');
   }
 }
 
