@@ -6,8 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#060d1a">
+<meta name="description" content="NaqlPro — نقل برو | Solution professionnelle de gestion de flotte transport Maroc">
+<meta name="keywords" content="gestion flotte, transport maroc, NaqlPro, نقل, شاحنات">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Gestion Flotte Maroc</title>
+<title>NaqlPro — نقل برو</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#060d1a;color:#f1f5f9;font-family:'Segoe UI',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
@@ -252,9 +254,10 @@ tr:hover td{background:#ffffff04}
 <div id="loginPage">
   <div class="login-box">
     <div class="logo">
-      <div class="logo-icon">GF</div>
-      <h1>GESTION FLOTTE MAROC</h1>
-      <p>SOLUTION PRO TRANSPORT</p>
+      <div class="logo-icon" style="font-family:serif;font-size:22px">نق</div>
+      <h1>NaqlPro — نقل برو</h1>
+      <p>حل احترافي للنقل · Solution Pro Transport</p>
+      <div style="font-size:12px;color:#94a3b8;margin-top:4px;direction:rtl">إدارة أسطول النقل والشاحنات</div>
     </div>
     <div class="field">
       <label>Email</label>
@@ -264,7 +267,7 @@ tr:hover td{background:#ffffff04}
       <label>Mot de passe</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button class="btn-primary" onclick="doLogin()">Se connecter</button>
+    <button class="btn-primary" onclick="doLogin()">Se connecter — تسجيل الدخول</button>
     <div class="error-msg" id="loginError"></div>
     <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
       <div style="flex:1;height:1px;background:#1a2744"></div>
@@ -272,7 +275,7 @@ tr:hover td{background:#ffffff04}
       <div style="flex:1;height:1px;background:#1a2744"></div>
     </div>
     <button onclick="showTrialForm()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #f9731640;background:#f9731610;color:#f97316;font-weight:700;font-size:14px;cursor:pointer">
-      🚀 Demander un essai gratuit 48h
+      🚀 Demander un essai 48h — طلب تجريبي مجاني
     </button>
     <div style="text-align:center;margin-top:10px;font-size:11px;color:#475569">
       ✓ Accès complet · ✓ Sans carte bancaire · ✓ 19 modules · ✓ Validé sous 24h
@@ -286,10 +289,10 @@ tr:hover td{background:#ffffff04}
     <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo">GF</div>
+        <div class="sidebar-logo" style="font-family:serif;letter-spacing:-1px">نق</div>
         <div>
-          <div class="sidebar-title">GESTION FLOTTE</div>
-          <div class="sidebar-subtitle">MAROC</div>
+          <div class="sidebar-title">NaqlPro — نقل برو</div>
+          <div class="sidebar-subtitle">حل النقل الاحترافي</div>
         </div>
       </div>
       <nav class="sidebar-nav" id="sidebarNav"></nav>
@@ -308,11 +311,12 @@ tr:hover td{background:#ffffff04}
     <!-- MAIN -->
     <div class="main-content">
       <div class="topbar">
-        <div class="topbar-title">GESTION FLOTTE MAROC</div>
+        <div class="topbar-title">NaqlPro — نقل برو</div>
+          <div style="font-size:9px;color:#334155;direction:rtl">إدارة أسطول الشاحنات</div>
         <div class="topbar-actions">
           <div id="expireBadge" class="badge-expire hidden"></div>
           <button id="btnSuperAdmin" class="btn-super hidden" onclick="showPage('superadmin')">👑 Super Admin</button>
-          <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+          <button class="btn-logout" onclick="doLogout()">Déconnexion — خروج</button>
         </div>
       </div>
 
@@ -407,7 +411,7 @@ tr:hover td{background:#ffffff04}
 
 <script>
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let token = localStorage.getItem('gfm_token');
+let token = localStorage.getItem('naqlpro_token');
 let currentAccount = null;
 let currentPage = 'dashboard';
 let state = { vehicles:[], drivers:[], missions:[], invoices:[], fuels:[], expenses:[], maintenances:[], leaves:[], alerts:[] };
@@ -511,10 +515,10 @@ function startTrial() {
     isTrial: true,
   };
   // Stocker en localStorage pour le mode démo
-  localStorage.setItem('gfm_trial', JSON.stringify(trialAccount));
+  localStorage.setItem('naqlpro_trial', JSON.stringify(trialAccount));
   currentAccount = trialAccount;
   token = 'trial_token';
-  localStorage.setItem('gfm_token', token);
+  localStorage.setItem('naqlpro_token', token);
   initTrialApp();
 }
 
@@ -580,7 +584,7 @@ function initTrialApp() {
     alerts: [
       {id:1,type:'urgent',title:'Assurance expire bientôt',desc:'Véhicule 11111-C-3 — assurance expire dans 87 jours',read:0},
       {id:2,type:'warning',title:'Maintenance prévue',desc:'Véhicule 67890-B-2 — maintenance dans 43 jours',read:0},
-      {id:3,type:'info',title:'Bienvenue sur Gestion Flotte Maroc',desc:'Vous êtes en mode essai 48h. Toutes les fonctionnalités sont disponibles.',read:0},
+      {id:3,type:'info',title:'Bienvenue sur NaqlPro',desc:'Vous êtes en mode essai 48h. Toutes les fonctionnalités sont disponibles.',read:0},
     ],
   };
 
@@ -619,7 +623,7 @@ async function doLogin() {
   try {
     const data = await api('POST', '/api/login', { email, password });
     token = data.token;
-    localStorage.setItem('gfm_token', token);
+    localStorage.setItem('naqlpro_token', token);
     currentAccount = data.account;
     initApp();
   } catch(e) {
@@ -631,8 +635,8 @@ async function doLogin() {
 document.addEventListener('keydown', e => { if(e.key==='Enter' && document.getElementById('loginPage').style.display!=='none') doLogin(); });
 
 function doLogout() {
-  localStorage.removeItem('gfm_token');
-  localStorage.removeItem('gfm_trial');
+  localStorage.removeItem('naqlpro_token');
+  localStorage.removeItem('naqlpro_trial');
   token = null;
   currentAccount = null;
   gpsConnected = false;
@@ -670,7 +674,7 @@ async function initApp() {
   // License badge
   const lic = document.getElementById('licenseBadge');
   if (currentAccount.role === 'super') {
-    lic.textContent = '👑 Super Admin';
+    lic.textContent = '👑 Super Admin — المشرف';
     lic.style.cssText = 'background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b40';
     document.getElementById('btnSuperAdmin').classList.remove('hidden');
   } else if (currentAccount.plan === 'life') {
@@ -697,24 +701,24 @@ async function initApp() {
 function buildSidebar() {
   const isSuper = currentAccount.role === 'super';
   const items = [
-    {id:'dashboard', icon:'📊', label:'Dashboard'},
-    {id:'missions', icon:'🗺', label:'Missions'},
-    {id:'gps', icon:'📍', label:'GPS Live'},
-    {id:'vehicles', icon:'🚛', label:'Flotte'},
-    {id:'drivers', icon:'👤', label:'Chauffeurs'},
-    {id:'fuel', icon:'⛽', label:'Carburant'},
-    {id:'invoices', icon:'📄', label:'Facturation'},
-    {id:'rh', icon:'👥', label:'RH'},
-    {id:'maintenance', icon:'🔧', label:'Maintenance'},
-    {id:'expenses', icon:'💸', label:'Dépenses'},
-    {id:'alerts', icon:'🔔', label:'Alertes', badge:true},
-    {id:'rapports', icon:'📈', label:'Rapports'},
-    {id:'notifications', icon:'📱', label:'Notifications'},
-    {id:'portail', icon:'🏢', label:'Portail Client'},
-    {id:'chargements', icon:'📦', label:'Chargements'},
-    {id:'documents', icon:'📋', label:'Documents'},
-    {id:'planificateur', icon:'🗺', label:'Planif. Routes'},
-    {id:'cartePeages', icon:'🛣️', label:'Carte Péages ADM'},
+    {id:'dashboard', icon:'📊', label:'Dashboard — لوحة التحكم'},
+    {id:'missions', icon:'🗺', label:'Missions — المهام'},
+    {id:'gps', icon:'📍', label:'GPS Live — تتبع مباشر'},
+    {id:'vehicles', icon:'🚛', label:'Flotte — الأسطول'},
+    {id:'drivers', icon:'👤', label:'Chauffeurs — السائقون'},
+    {id:'fuel', icon:'⛽', label:'Carburant — الوقود'},
+    {id:'invoices', icon:'📄', label:'Facturation — الفواتير'},
+    {id:'rh', icon:'👥', label:'RH — الموارد البشرية'},
+    {id:'maintenance', icon:'🔧', label:'Maintenance — الصيانة'},
+    {id:'expenses', icon:'💸', label:'Dépenses — المصاريف'},
+    {id:'alerts', icon:'🔔', label:'Alertes — التنبيهات', badge:true},
+    {id:'rapports', icon:'📈', label:'Rapports — التقارير'},
+    {id:'notifications', icon:'📱', label:'Notifications — الإشعارات'},
+    {id:'portail', icon:'🏢', label:'Portail Client — بوابة الزبائن'},
+    {id:'chargements', icon:'📦', label:'Chargements — الشحنات'},
+    {id:'documents', icon:'📋', label:'Documents — الوثائق'},
+    {id:'planificateur', icon:'🗺', label:'Planif. Routes — تخطيط المسارات'},
+    {id:'cartePeages', icon:'🛣️', label:'Carte Péages — خريطة المعابر'},
   ];
   if (isSuper) items.push({id:'superadmin', icon:'👑', label:'Super Admin'});
 
@@ -814,14 +818,14 @@ async function renderDashboard(el) {
   const inv = state.invoices || [];
   el.innerHTML = `
     <div style="margin-bottom:24px">
-      <div style="font-size:24px;font-weight:800">Tableau de bord</div>
-      <div style="font-size:13px;color:#94a3b8;margin-top:4px">Bienvenue, ${currentAccount.name}</div>
+      <div style="font-size:24px;font-weight:800">Tableau de bord — لوحة التحكم</div>
+      <div style="font-size:13px;color:#94a3b8;margin-top:4px">Bienvenue أهلاً، ${currentAccount.name}</div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(stats.revenue||0)}</div><div class="stat-label">CA encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(stats.revenue||0)}</div><div class="stat-label">CA — رقم الأعمال</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">🚛</div><div class="stat-value" style="color:#3b82f6">${stats.vehicles||0}</div><div class="stat-label">Véhicules</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">🗺</div><div class="stat-value" style="color:#22c55e">${stats.activeMissions||0}</div><div class="stat-label">Missions actives</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#ef444418">🔔</div><div class="stat-value" style="color:#ef4444">${stats.unreadAlerts||0}</div><div class="stat-label">Alertes non lues</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">🗺</div><div class="stat-value" style="color:#22c55e">${stats.activeMissions||0}</div><div class="stat-label">Missions — مهام نشطة</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#ef444418">🔔</div><div class="stat-value" style="color:#ef4444">${stats.unreadAlerts||0}</div><div class="stat-label">Alertes — تنبيهات</div></div>
     </div>
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
       <div class="card">
@@ -848,8 +852,8 @@ function renderVehicles(el) {
   const v = state.vehicles || [];
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Gestion de la flotte</div><div class="page-sub">${v.length} véhicule(s)</div></div>
-      <button class="btn btn-orange" onclick="vehicleForm()">+ Ajouter</button>
+      <div><div class="page-title">Gestion de la flotte — إدارة الأسطول</div><div class="page-sub">${v.length} véhicule(s)</div></div>
+      <button class="btn btn-orange" onclick="vehicleForm()">+ Ajouter — إضافة</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
       ${v.map(x=>{
@@ -924,8 +928,8 @@ function renderDrivers(el) {
   const d = state.drivers || [];
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Gestion des chauffeurs</div><div class="page-sub">${d.length} chauffeur(s)</div></div>
-      <button class="btn btn-orange" onclick="driverForm()">+ Ajouter</button>
+      <div><div class="page-title">Gestion des chauffeurs — إدارة السائقين</div><div class="page-sub">${d.length} chauffeur(s)</div></div>
+      <button class="btn btn-orange" onclick="driverForm()">+ Ajouter — إضافة</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
       ${d.map(x=>`<div class="card" style="padding:16px">
@@ -985,8 +989,8 @@ function renderMissions(el) {
   const m = state.missions || [];
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Gestion des missions</div><div class="page-sub">${m.length} mission(s)</div></div>
-      <button class="btn btn-orange" onclick="missionForm()">+ Nouvelle</button>
+      <div><div class="page-title">Gestion des missions — إدارة المهام</div><div class="page-sub">${m.length} mission(s)</div></div>
+      <button class="btn btn-orange" onclick="missionForm()">+ Nouvelle — جديد</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
       ${m.map(x=>{
@@ -1060,8 +1064,8 @@ function renderInvoices(el) {
   const pend = inv.filter(i=>i.status==='en_attente').reduce((a,i)=>a+Number(i.amount),0);
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Facturation</div><div class="page-sub">${inv.length} facture(s)</div></div>
-      <button class="btn btn-orange" onclick="invoiceForm()">+ Nouvelle</button>
+      <div><div class="page-title">Facturation — الفواتير</div><div class="page-sub">${inv.length} facture(s)</div></div>
+      <button class="btn btn-orange" onclick="invoiceForm()">+ Nouvelle — جديد</button>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid)}</div><div class="stat-label">Encaissé</div></div>
@@ -1122,8 +1126,8 @@ function renderFuel(el) {
   const totalC = f.reduce((a,x)=>a+Number(x.litres||0)*Number(x.price_per_l||14.5),0);
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Gestion du carburant</div><div class="page-sub">${f.length} plein(s)</div></div>
-      <button class="btn btn-orange" onclick="fuelForm()">+ Nouveau plein</button>
+      <div><div class="page-title">Gestion du carburant — إدارة الوقود</div><div class="page-sub">${f.length} plein(s)</div></div>
+      <button class="btn btn-orange" onclick="fuelForm()">+ Nouveau plein — تعبئة جديدة</button>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#f9731618">⛽</div><div class="stat-value" style="color:#f97316">${Number(totalL.toFixed(0)).toLocaleString()} L</div><div class="stat-label">Total litres</div></div>
@@ -1180,8 +1184,8 @@ function renderMaintenance(el) {
   const m = state.maintenances || [];
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Maintenance préventive</div><div class="page-sub">${m.length} intervention(s)</div></div>
-      <button class="btn btn-orange" onclick="maintenanceForm()">+ Planifier</button>
+      <div><div class="page-title">Maintenance — الصيانة الوقائية</div><div class="page-sub">${m.length} intervention(s)</div></div>
+      <button class="btn btn-orange" onclick="maintenanceForm()">+ Planifier — تخطيط</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
       ${m.map(x=>{
@@ -1246,8 +1250,8 @@ function renderExpenses(el) {
   const total = exp.reduce((a,x)=>a+Number(x.amount||0),0);
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Dépenses & Charges</div><div class="page-sub">${exp.length} dépense(s) · Total: ${fmtMAD(total)}</div></div>
-      <button class="btn btn-orange" onclick="expenseForm()">+ Ajouter</button>
+      <div><div class="page-title">Dépenses — المصاريف والأعباء</div><div class="page-sub">${exp.length} dépense(s) · Total: ${fmtMAD(total)}</div></div>
+      <button class="btn btn-orange" onclick="expenseForm()">+ Ajouter — إضافة</button>
     </div>
     <div class="card">
       ${exp.map(x=>{
@@ -1299,10 +1303,10 @@ function renderAlerts(el) {
   const colors = {urgent:'#ef4444',warning:'#f59e0b',info:'#3b82f6'};
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Centre d'alertes</div><div class="page-sub">${unread} non lue(s)</div></div>
+      <div><div class="page-title">Alertes — مركز التنبيهات</div><div class="page-sub">${unread} non lue(s)</div></div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-ghost" onclick="markAllRead()">Tout marquer lu</button>
-        <button class="btn btn-orange" onclick="alertForm()">+ Nouvelle</button>
+        <button class="btn btn-ghost" onclick="markAllRead()">Tout lire — قراءة الكل</button>
+        <button class="btn btn-orange" onclick="alertForm()">+ Nouvelle — جديد</button>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
@@ -1369,8 +1373,8 @@ async function renderSuperAdmin(el) {
 
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">👑 Super Admin</div><div class="page-sub">Gestion des comptes clients</div></div>
-      <button class="btn btn-orange" onclick="createAccountForm()">+ Créer un compte</button>
+      <div><div class="page-title">👑 Super Admin — المشرف العام</div><div class="page-sub">Gestion des comptes clients</div></div>
+      <button class="btn btn-orange" onclick="createAccountForm()">+ Créer un compte — إنشاء حساب</button>
     </div>
 
     ${pendingTrials.length>0?`
@@ -1545,7 +1549,7 @@ function approveTrialForm(id, name, email) {
         </select>
       </div>
       <div class="form-field"><label>Mot de passe *</label>
-        <input id="ap_pass" value="GFM2026!" placeholder="Mot de passe initial">
+        <input id="ap_pass" value="NP2026!" placeholder="Mot de passe initial">
       </div>
     </div>
     <div style="margin-top:12px;padding:10px;background:#3b82f615;border-radius:8px;font-size:11px;color:#94a3b8">
@@ -1592,7 +1596,7 @@ function renderRH(el) {
   const totalSal = drivers.reduce((a,d)=>a+Number(d.salary||0),0);
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Ressources Humaines</div><div class="page-sub">Gestion des équipes</div></div>
+      <div><div class="page-title">RH — الموارد البشرية</div><div class="page-sub">Gestion des équipes</div></div>
       <button class="btn btn-orange" onclick="leaveForm()">+ Demande congé</button>
     </div>
     <div class="stats-grid" style="margin-bottom:20px">
@@ -1681,9 +1685,9 @@ function renderRapports(el) {
   })).filter(v=>v.total>0);
 
   el.innerHTML = `
-    <div class="page-header"><div><div class="page-title">Rapports & Analytics</div><div class="page-sub">Vue globale des performances</div></div></div>
+    <div class="page-header"><div><div class="page-title">Rapports — التقارير والإحصاءات</div><div class="page-sub">Vue globale des performances</div></div></div>
     <div class="stats-grid" style="margin-bottom:24px">
-      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(paid)}</div><div class="stat-label">CA encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#f9731618">💰</div><div class="stat-value" style="color:#f97316">${fmtMAD(paid)}</div><div class="stat-label">CA — رقم الأعمال</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">⛽</div><div class="stat-value" style="color:#3b82f6">${fmtMAD(Math.round(fuelCost))}</div><div class="stat-label">Coût carburant</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">📈</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid-Math.round(fuelCost))}</div><div class="stat-label">Marge estimée</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#a855f618">🚛</div><div class="stat-value" style="color:#a855f7">${vehicles.reduce((a,v)=>a+Number(v.km||0),0).toLocaleString()} km</div><div class="stat-label">Km totaux</div></div>
@@ -1752,7 +1756,7 @@ function renderNotifications(el) {
 
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Notifications & Alertes Auto</div><div class="page-sub">SMS · Email · WhatsApp</div></div>
+      <div><div class="page-title">Notifications — الإشعارات التلقائية</div><div class="page-sub">SMS · Email · WhatsApp</div></div>
       <button class="btn btn-orange" onclick="sendNotifForm()">+ Envoyer</button>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
@@ -1823,7 +1827,7 @@ function renderPortail(el) {
 
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Portail Client</div><div class="page-sub">Espace client — suivi en temps réel</div></div>
+      <div><div class="page-title">Portail Client — بوابة الزبائن</div><div class="page-sub">Espace client — suivi en temps réel</div></div>
       <button class="btn btn-ghost" onclick="toast('Lien portail copié ✓','success')">🔗 Partager lien</button>
     </div>
     <div style="margin-bottom:20px">
@@ -1835,7 +1839,7 @@ function renderPortail(el) {
     ${sel?`
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#3b82f618">🗺</div><div class="stat-value" style="color:#3b82f6">${cMissions.length}</div><div class="stat-label">Missions</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid)}</div><div class="stat-label">CA encaissé</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${fmtMAD(paid)}</div><div class="stat-label">CA — رقم الأعمال</div></div>
       <div class="stat-card"><div class="stat-icon" style="background:#f59e0b18">⏳</div><div class="stat-value" style="color:#f59e0b">${fmtMAD(pend)}</div><div class="stat-label">En attente</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -1879,7 +1883,7 @@ function renderChargements(el) {
   const missions = state.missions || [];
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Gestion des chargements</div><div class="page-sub">${chargements.length} chargement(s)</div></div>
+      <div><div class="page-title">Chargements — إدارة الشحنات</div><div class="page-sub">${chargements.length} chargement(s)</div></div>
       <button class="btn btn-orange" onclick="chargementForm()">+ Nouveau</button>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
@@ -1978,8 +1982,8 @@ function renderDocuments(el) {
 
   el.innerHTML = `
     <div class="page-header">
-      <div><div class="page-title">Documents légaux</div><div class="page-sub">${allDocs.length} document(s)</div></div>
-      <button class="btn btn-orange" onclick="docForm()">+ Ajouter</button>
+      <div><div class="page-title">Documents — الوثائق القانونية</div><div class="page-sub">${allDocs.length} document(s)</div></div>
+      <button class="btn btn-orange" onclick="docForm()">+ Ajouter — إضافة</button>
     </div>
     <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
       <div class="stat-card"><div class="stat-icon" style="background:#22c55e18">✅</div><div class="stat-value" style="color:#22c55e">${allDocs.filter(d=>d.status==='valide').length}</div><div class="stat-label">Valides</div></div>
@@ -2049,7 +2053,7 @@ function renderPlanificateur(el) {
   const distances = {'Casablanca-Rabat':92,'Casablanca-Marrakech':243,'Casablanca-Fes':302,'Casablanca-Tanger':345,'Casablanca-Agadir':461,'Casablanca-Settat':72,'Casablanca-Khouribga':117,'Casablanca-El Jadida':99,'Casablanca-Safi':253,'Casablanca-Kenitra':74,'Rabat-Kenitra':40,'Rabat-Fes':200,'Rabat-Tanger':256,'Rabat-Meknes':138,'Rabat-Oujda':474,'Rabat-Marrakech':330,'Kenitra-Larache':132,'Kenitra-Tanger':190,'Tanger-Tetouan':57,'Marrakech-Agadir':256,'Marrakech-Beni Mellal':175,'Fes-Meknes':62,'Fes-Oujda':337,'Fes-Taza':117,'Meknes-Oujda':399,'Settat-Khouribga':69,'Khouribga-Beni Mellal':96,'El Jadida-Safi':155};
 
   el.innerHTML = `
-    <div class="page-header"><div><div class="page-title">Planificateur de routes</div><div class="page-sub">Calcul kilométrage · Coûts réels</div></div></div>
+    <div class="page-header"><div><div class="page-title">Planif. Routes — تخطيط المسارات</div><div class="page-sub">Calcul kilométrage · Coûts réels</div></div></div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
@@ -2175,7 +2179,7 @@ function renderCartePeages(el) {
   const oPos=cityPos[orig],dPos=cityPos[dest],vPos=tarif?.via?cityPos[tarif.via]:null;
 
   el.innerHTML = `
-    <div class="page-header"><div><div class="page-title">Carte des Péages — Tarifs ADM</div><div class="page-sub">Source officielle: adm.co.ma · Mai 2026</div></div></div>
+    <div class="page-header"><div><div class="page-title">Carte Péages ADM — خريطة المعابر</div><div class="page-sub">Source officielle: adm.co.ma · Mai 2026</div></div></div>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
       <div style="display:flex;flex-direction:column;gap:14px">
         <div class="card">
@@ -2247,9 +2251,9 @@ let gpsSelected = null;
 function renderGPS(el) {
   const vehicles = state.vehicles || [];
   const aid = currentAccount?.id || 'default';
-  const traccarUrl = localStorage.getItem('gfm_traccar_url_'+aid) || '';
-  const traccarUser = localStorage.getItem('gfm_traccar_user_'+aid) || 'admin';
-  const traccarPass = localStorage.getItem('gfm_traccar_pass_'+aid) || 'admin';
+  const traccarUrl = localStorage.getItem('naqlpro_traccar_url_'+aid) || '';
+  const traccarUser = localStorage.getItem('naqlpro_traccar_user_'+aid) || 'admin';
+  const traccarPass = localStorage.getItem('naqlpro_traccar_pass_'+aid) || 'admin';
 
   // Display: real if connected, demo otherwise
   const displayV = gpsConnected && gpsPositions.length > 0
@@ -2277,7 +2281,7 @@ function renderGPS(el) {
   el.innerHTML = `
     <div class="page-header">
       <div>
-        <div class="page-title">GPS Live — Suivi temps réel</div>
+        <div class="page-title">GPS Live — التتبع المباشر</div>
         <div class="page-sub" id="gpsStatus" style="color:${gpsConnected?'#22c55e':'#f59e0b'}">
           ${gpsConnected ? '● CONNECTÉ — Traccar · '+displayV.length+' véhicules' : '● Mode démo — Configurez Traccar pour le suivi réel'}
         </div>
@@ -2375,9 +2379,9 @@ function renderGPS(el) {
 
 function gpsConfigForm() {
   const aid = currentAccount?.id || 'default';
-  const url = localStorage.getItem('gfm_traccar_url_'+aid)||'https://traccar.up.railway.app';
-  const user = localStorage.getItem('gfm_traccar_user_'+aid)||'admin@gfm.ma';
-  const pass = localStorage.getItem('gfm_traccar_pass_'+aid)||'';
+  const url = localStorage.getItem('naqlpro_traccar_url_'+aid)||'https://traccar.up.railway.app';
+  const user = localStorage.getItem('naqlpro_traccar_user_'+aid)||'admin@gfm.ma';
+  const pass = localStorage.getItem('naqlpro_traccar_pass_'+aid)||'';
   openModal('Configuration Traccar GPS', `
     <div style="padding:12px;background:#f9731610;border:1px solid #f9731630;border-radius:10px;margin-bottom:16px">
       <div style="font-size:12px;font-weight:700;color:#f97316;margin-bottom:6px">Comment connecter un camion ?</div>
@@ -2408,9 +2412,9 @@ function gpsConfigForm() {
 
 async function fetchGPS() {
   const aid = currentAccount?.id || 'default';
-  const url = localStorage.getItem('gfm_traccar_url_'+aid);
-  const user = localStorage.getItem('gfm_traccar_user_'+aid);
-  const pass = localStorage.getItem('gfm_traccar_pass_'+aid);
+  const url = localStorage.getItem('naqlpro_traccar_url_'+aid);
+  const user = localStorage.getItem('naqlpro_traccar_user_'+aid);
+  const pass = localStorage.getItem('naqlpro_traccar_pass_'+aid);
   if(!url) return;
   try {
     // Use backend proxy to avoid CORS issues
@@ -2453,9 +2457,9 @@ async function connectTraccar() {
     await api('GET', '/api/traccar/test?'+params);
 
     // Connexion OK - sauvegarder
-    localStorage.setItem('gfm_traccar_url_'+aid, url);
-    localStorage.setItem('gfm_traccar_user_'+aid, user);
-    localStorage.setItem('gfm_traccar_pass_'+aid, pass);
+    localStorage.setItem('naqlpro_traccar_url_'+aid, url);
+    localStorage.setItem('naqlpro_traccar_user_'+aid, user);
+    localStorage.setItem('naqlpro_traccar_pass_'+aid, pass);
 
     // Sauvegarder aussi en base (persistance entre sessions)
     await api('POST', '/api/settings/traccar_url', {value: url});
@@ -2479,7 +2483,7 @@ window.onload = async () => {
   if (token) {
     try {
       // Check if trial mode
-      const trialData = localStorage.getItem('gfm_trial');
+      const trialData = localStorage.getItem('naqlpro_trial');
       if(token === 'trial_token' && trialData) {
         currentAccount = JSON.parse(trialData);
         const expiry = new Date(currentAccount.expires_at);
@@ -2488,8 +2492,8 @@ window.onload = async () => {
           return;
         } else {
           // Trial expired
-          localStorage.removeItem('gfm_token');
-          localStorage.removeItem('gfm_trial');
+          localStorage.removeItem('naqlpro_token');
+          localStorage.removeItem('naqlpro_trial');
           token = null;
           return;
         }
@@ -2505,11 +2509,11 @@ window.onload = async () => {
           api('GET', '/api/settings/traccar_user'),
           api('GET', '/api/settings/traccar_pass'),
         ]);
-        if(urlRes.value) localStorage.setItem('gfm_traccar_url_'+aid, urlRes.value);
-        if(userRes.value) localStorage.setItem('gfm_traccar_user_'+aid, userRes.value);
-        if(passRes.value) localStorage.setItem('gfm_traccar_pass_'+aid, passRes.value);
+        if(urlRes.value) localStorage.setItem('naqlpro_traccar_url_'+aid, urlRes.value);
+        if(userRes.value) localStorage.setItem('naqlpro_traccar_user_'+aid, userRes.value);
+        if(passRes.value) localStorage.setItem('naqlpro_traccar_pass_'+aid, passRes.value);
       } catch(e) { console.log('No Traccar config in DB'); }
-      const traccarUrl = localStorage.getItem('gfm_traccar_url_'+aid);
+      const traccarUrl = localStorage.getItem('naqlpro_traccar_url_'+aid);
       if(traccarUrl) {
         fetchGPS().then(()=>{
           if(gpsConnected) {
@@ -2522,7 +2526,7 @@ window.onload = async () => {
         });
       }
     } catch(e) {
-      localStorage.removeItem('gfm_token');
+      localStorage.removeItem('naqlpro_token');
       token = null;
     }
   }

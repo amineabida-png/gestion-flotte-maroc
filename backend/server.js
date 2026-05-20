@@ -197,9 +197,9 @@ const superExists = db.prepare("SELECT id FROM accounts WHERE role='super'").get
 if (!superExists) {
   const hash = bcrypt.hashSync('GFM2026@Admin', 10);
   db.prepare(`INSERT INTO accounts (name, email, password, role, company, plan, expires_at)
-    VALUES (?, ?, ?, 'super', 'Gestion Flotte Maroc', 'life', '2099-12-31')`
+    VALUES (?, ?, ?, 'super', 'NaqlPro', 'life', '2099-12-31')`
   ).run('Super Admin', 'admin@gfm.ma', hash);
-  console.log('✅ Super Admin created: admin@gfm.ma / GFM2026@Admin');
+  console.log('✅ Super Admin: admin@naqlpro.ma / NaqlPro2026@Admin');
 }
 
 // ─── AUTH MIDDLEWARE ──────────────────────────────────────────────────────────
